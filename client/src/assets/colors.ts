@@ -4,8 +4,8 @@
 const COLORS = {
   // From Official hack website
   // https://github.com/hack4impact/chapter-website-template/blob/main/public/style.css
-  primaryBlue: '#0069ca',
-  secondarySeafoam: '#80d2c8',
+  primaryBlue: '#1AC0DF', //'#0069ca',
+  secondarySeafoam: '#0D5BA4', //'#80d2c8',
   gray: '#657788',
   primaryDark: '#172a3a', // Dark Blue
   primaryDark2: '#2e5987', // Dark Blue level 2
@@ -15,7 +15,7 @@ const COLORS = {
   white: '#ffffff', // White
   neutral: '#8c8c8c', // Gray
   lightGray: '#ebeff2', // Gray-subsection
-  actionBlue: '#155da1', // Action button
+  actionBlue: '#0D5BA4', // Action button
 
   // Other colors:
 };

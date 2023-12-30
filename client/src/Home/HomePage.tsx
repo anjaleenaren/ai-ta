@@ -69,17 +69,28 @@ function HomePage() {
     }
   };
 
-  const message = `Welcome to the Boilerplate, ${user.firstName} ${user.lastName}!`;
+  // const message = `Meet Your AI TA, ${user.firstName} ${user.lastName}!`;
+  const message = `Hi ${user.firstName}, I'm your AI Teaching Assistant`;
   return (
     <ScreenGrid>
       <Typography variant="h2">{message}</Typography>
       <Grid item container justifyContent="center">
+        <PrimaryButton
+          variant="contained"
+          onClick={() => navigator('/essays', { replace: true })}
+        >
+          Grade Essays
+        </PrimaryButton>
+      </Grid>
+      
+      {/* <Grid item container justifyContent="center">
         <PromoteButton
           admin={admin}
           handleSelfPromote={handleSelfPromote}
           navigator={navigator}
         />
-      </Grid>
+      </Grid> */}
+      
       <Grid item container justifyContent="center">
         <Button onClick={handleLogout}>Logout</Button>
       </Grid>
