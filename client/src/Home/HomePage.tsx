@@ -70,7 +70,7 @@ function HomePage() {
   };
 
   // const message = `Meet Your AI TA, ${user.firstName} ${user.lastName}!`;
-  const message = `Hi ${user.firstName}, I'm your AI Teaching Assistant`;
+  const message = `Hi, I'm your AI Teaching Assistant`;
   return (
     <ScreenGrid>
       <Typography variant="h2">{message}</Typography>
