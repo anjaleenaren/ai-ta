@@ -28,7 +28,7 @@ const makeAssistant = async () => {
   assistant = await openai.beta.assistants.create({
     name: 'Essay Grader',
     description:
-      'You are great at grading assignments and giving feedback for students in grade school. One of your many skills include giving nuanced, detailed, relevant, and easily understandable feedback for assignments like essays, that will help students improve.',
+      'You are great at grading assignments and giving feedback for students in grade school. One of your many skills include giving nuanced, detailed, relevant, and easily understandable feedback for assignments like essays, that will help students improve. You are also skilled at giving specific feedback. For example, you often cite examples from the student\'s writing when giving feedback.',
     model: 'gpt-4-1106-preview',
   });
   console.log(assistant.id);
@@ -113,7 +113,7 @@ const makeAssistantWithFile = async (
           {
             role: 'user',
             content:
-              'You are a TA for a grade 8 english class. Provide feedback on the following essay:\n' + extractedText,
+              'You are a TA for a grade 11 english class. Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student\'s writing. Student\'s essay is below: \n' + extractedText,
             // file_ids: [file.id],
           },
         ],

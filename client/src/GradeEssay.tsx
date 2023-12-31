@@ -1,10 +1,10 @@
 // Grader Frontend (Single Essay)
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { Typography, Grid } from '@mui/material';
+import { Typography, Grid, Box } from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
   logout as logoutAction,
@@ -22,9 +22,31 @@ const BACKENDURL = process.env.PUBLIC_URL
 const URLPREFIX = `${BACKENDURL}/api`;
 
 function GradeEssay() {
-  const [feedback, setFeedback] = React.useState('');
+  const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = React.useState(0);
   const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [extractedText, setExtractedText] = useState(``);
+
+  const [fileContentRows, setFileContentRows] = useState(10);
+  const [feedbackRows, setFeedbackRows] = useState(10);
+
+  const calculateRows = () => {
+    const windowHeight = window.innerHeight;
+    // Adjust these values based on your layout and preferences
+    const rowsForFileContent = Math.max(5, Math.min(25, Math.floor(windowHeight / 60)));
+    const rowsForFeedback = Math.max(3, Math.min(20, Math.floor(windowHeight / 70)));
+
+    console.log(rowsForFileContent, rowsForFeedback);
+
+    setFileContentRows(rowsForFileContent);
+    setFeedbackRows(rowsForFeedback);
+  };
+
+  useEffect(() => {
+    calculateRows();
+    window.addEventListener('resize', calculateRows);
+    return () => window.removeEventListener('resize', calculateRows);
+  }, []);
 
   const handleFileChange = async (event : any) => {
     const file = event.target.files[0];
@@ -37,13 +59,13 @@ function GradeEssay() {
 
       try {
         const url = 'grader/upload-essay';
-        const response = await axios.post(`${URLPREFIX}/${url}`, formData, {
-        //   headers: {
-        //     'Content-Type': 'multipart/form-data',
-        //   },
-        });
+        const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
+
         // Handle response here
         console.log(response.data);
+        console.log(response.data.responseMessage[0]?.text?.value)
+        setFeedback(response.data.responseMessage[0]?.text?.value);
+        setExtractedText(response.data.extractedText);
       } catch (error) {
         console.error('Error uploading file:', error);
       }
@@ -55,6 +77,7 @@ function GradeEssay() {
   };
 
   return (
+    <Box marginLeft="30px" marginRight="30px" flex="vertical" overflow="scroll">
     <ScreenGrid>
     {/* Hidden file input */}
       <input
@@ -68,7 +91,7 @@ function GradeEssay() {
       {/* Button to trigger file upload */}
       <Grid item container justifyContent="center">
         <PrimaryButton variant="contained" onClick={uploadFile}>
-          Upload an Essay (.docx, .txt)
+          Upload an Essay (.docx, .txt, .pdf)
         </PrimaryButton>
       </Grid>
 
@@ -79,23 +102,40 @@ function GradeEssay() {
         </Grid>
       )}
 
+      {/* File Viewer */}
+      {extractedText && (
+        <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
+          <TextField
+            label="File Content"
+            multiline
+            rows={fileContentRows}
+            variant="outlined"
+            fullWidth
+            value={extractedText}
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+        </Grid>
+      )}
+
       {/* Passes it to openAI to get feedback and grade */}
       <Grid marginTop="20px" item container width="100%" justifyContent="center">
         <TextField
           id="outlined-multiline-flexible"
           label="Feedback"
           multiline
-          // rowsMax={4}
+          rows={feedbackRows}
           value={feedback}
-          onChange={(event) => {
-            setFeedback(event.target.value);
-          }}
+          onChange={(event) => setFeedback(event.target.value)}
           variant="outlined"
+          fullWidth
         />
       </Grid>
 
       {/* Displays the feedback and grade */}
     </ScreenGrid>
+    </Box>
   );
 }
 
