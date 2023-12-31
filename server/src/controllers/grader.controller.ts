@@ -14,6 +14,22 @@ import fs from 'fs';
 /**
  * Get OpenAI's grade for an essay given a file, and grading params
  */
+var assistant : any = 'asst_YKlxmmzbedS2zWEy7WucJvqP';
+
+const makeAssistant = async () => {
+    console.log("Make assistant");
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    }); 
+    
+    assistant = await openai.beta.assistants.create({
+        name: "Essay Grader",
+        description: "You are great at grading assignments and giving feedback for students in grade school. One of your many skills include giving nuanced, detailed, relevant, and easily understandable feedback for assignments like essays, that will help students improve.",
+        model: "gpt-4-1106-preview",
+    });
+    console.log(assistant.id);
+}
+
 const makeAssistantWithFile = async (
     req: express.Request,
     res: express.Response,
@@ -22,21 +38,20 @@ const makeAssistantWithFile = async (
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     }); 
+    console.log("Enter make assistant with file");
+    const list = await openai.files.list();
+
+    for await (const file of list) {
+        console.log(file);
+    }
 
     try {
+        console.log("Enter try, file =", req.file);
         // const id = req.params.id;
         if (
-          req.file &&
-          req.file.buffer &&
-          req.file.mimetype &&
-          req.file.originalname
+          req.file 
         ) {
-            const name = req.file.originalname;
-            const content = req.file.buffer;
-            const type = req.file.mimetype;
-            //   const key = uuidv4();
-            //   putReferralFileName(id, name, key, type);
-            //   await awsUpload(key, content, type);
+            console.log("Make assistant with file");
 
             // make openai request ->
             // Upload a file with an "assistants" purpose
@@ -44,6 +59,11 @@ const makeAssistantWithFile = async (
                 file: fs.createReadStream(req.file.path),
                 purpose: "assistants",
             });
+            console.log("openai fileid = ", file.id);
+
+            const file_get = await openai.files.retrieve(file.id);
+
+            console.log(file_get);
             
             // Add the file to the assistant
             // const assistant = await openai.beta.assistants.create({
@@ -53,6 +73,12 @@ const makeAssistantWithFile = async (
             //     // file_ids: [file.id]
             // });
 
+            if (!assistant || !assistant.id) { // Take this out after making the first assisstant and hardcode the id
+                await makeAssistant();
+                console.log("made assistant")
+            }
+            console.log(assistant.id);
+
             const thread = await openai.beta.threads.create({
                 messages: [
                   {
@@ -61,19 +87,30 @@ const makeAssistantWithFile = async (
                     "file_ids": [file.id]
                   }
                 ]
-              });
+            });
 
-            const message = await openai.beta.threads.messages.create(
+            var run = await openai.beta.threads.runs.create(
                 thread.id,
-                {
-                  role: "user",
-                  content: "You are a TA for a grade 8 english class. Provide feedback on the following essay.",
-                  file_ids: [file.id]
-                }
+                { assistant_id: assistant.id }
             );
+            console.log(run);
+            // Wait for run.status to be completed
+            while (run.status == 'queued' || run.status == 'in_progress') {
+                await new Promise(r => setTimeout(r, 500));
+                run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+            }
+            console.log("run status = ", run.status);
+            const threadMessages = await openai.beta.threads.messages.list(
+                thread.id,
+            );
+            console.log(threadMessages);
+            console.log("last message =", threadMessages.data[0].content);
+
         }
         res.status(StatusCode.OK).json('success');
       } catch (err) {
+        console.log("Error uploading file in controller");
+        console.log(err);
         next(
           ApiError.internal(
             `Unable to upload file due to the following error: ${err}`,

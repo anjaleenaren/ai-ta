@@ -11,17 +11,37 @@ import {
     submitEssayGrade,
 } from '../controllers/grader.controller';
 import 'dotenv/config';
+import path from 'path';
 
 const router = express.Router();
 
 /**
  * A POST route to setup Assistant for an essay given a file
  */
-// const upload = multer({ dest: 'uploads/' });
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-router.post('/upload-essay',  upload.single('file'), makeAssistantWithFile);
-
+const upload = multer({ dest: 'uploads/' });
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage });
+// Set up storage location and filenames
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//       cb(null, 'uploads/') // 'uploads/' is the directory where files will be saved
+//     },
+//     filename: function (req, file, cb) {
+//       cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+//     }
+//   });
+  
+// const upload = multer({ storage: storage });
+router.post('/upload-essay', (req, res, next) => {
+    upload.single('file')(req, res, function(err) {
+      if (err) {
+        // handle Multer error
+        console.log("Error uploading file");
+        return res.status(500).json({ error: err.message });
+      }
+      next();
+    });
+  }, makeAssistantWithFile);
 /**
  * A GET route to get feedback and grade for an givengrading params
  */
