@@ -34,8 +34,11 @@ function App() {
               <CssBaseline>
                 <AlertPopup />
                 <Routes>
+                  {/* <Route path="/home" element={<HomePage />} /> */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/essays" element={<GradeEssay />} />
                   {/* Routes accessed only if user is not authenticated */}
-                  <Route element={<UnauthenticatedRoutesWrapper />}>
+                  {/* <Route element={<UnauthenticatedRoutesWrapper />}>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route
@@ -54,24 +57,24 @@ function App() {
                   <Route
                     path="/invite/:token"
                     element={<InviteRegisterPage />}
-                  />
+                  /> */}
                   {/* Routes accessed only if user is authenticated */}
-                  <Route element={<ProtectedRoutesWrapper />}>
+                  {/* <Route element={<ProtectedRoutesWrapper />}>
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/essays" element={<GradeEssay />} />
                   </Route>
                   <Route element={<AdminRoutesWrapper />}>
                     <Route path="/users" element={<AdminDashboardPage />} />
-                  </Route>
+                  </Route> */}
                   
 
                   {/* Route which redirects to a different page depending on if the user is an authenticated or not by utilizing the DynamicRedirect component */}
-                  <Route
+                  {/* <Route
                     path="/"
                     element={
                       <DynamicRedirect unAuthPath="/login" authPath="/home" />
                     }
-                  />
+                  /> */}
 
                   {/* Route which is accessed if no other route is matched */}
                   <Route path="*" element={<NotFoundPage />} />
