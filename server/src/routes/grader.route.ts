@@ -6,9 +6,9 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import {
-    makeAssistantWithFile,
-    getFeedback, 
-    submitEssayGrade,
+  makeAssistantWithFile,
+  getFeedback,
+  submitEssayGrade,
 } from '../controllers/grader.controller';
 import 'dotenv/config';
 import path from 'path';
@@ -30,24 +30,27 @@ const upload = multer({ dest: 'uploads/' });
 //       cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
 //     }
 //   });
-  
+
 // const upload = multer({ storage: storage });
-router.post('/upload-essay', (req, res, next) => {
-    upload.single('file')(req, res, function(err) {
+router.post(
+  '/upload-essay',
+  (req, res, next) => {
+    upload.single('file')(req, res, function (err) {
       if (err) {
         // handle Multer error
-        console.log("Error uploading file");
+        console.log('Error uploading file');
         return res.status(500).json({ error: err.message });
       }
       next();
     });
-  }, makeAssistantWithFile);
+  },
+  makeAssistantWithFile,
+);
 /**
  * A GET route to get feedback and grade for an givengrading params
  */
 // const upload = multer({ dest: 'uploads/' });
 router.get('/get-feedback', getFeedback);
-
 
 /**
  * A POST route to submit an essay grade

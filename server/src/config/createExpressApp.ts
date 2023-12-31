@@ -25,6 +25,7 @@ const createExpressApp = (sessionStore: MongoStore): express.Express => {
 
   // Sets the port for the app
   app.set('port', process.env.PORT || 4000);
+  app.set('trust proxy', 2); // trust first proxy
   // Gives express the ability to parse requests with JSON and turn the JSON into objects
   app.use(express.json());
   // Gives express the ability to parse urlencoded payloads
@@ -35,6 +36,18 @@ const createExpressApp = (sessionStore: MongoStore): express.Express => {
   );
   // Gives express the ability accept origins outside its own to accept requests from
   app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
+  const frontendUrl = process.env.FRONTEND || 'http://localhost:3000';
+  app.use(
+    cors({
+      credentials: true,
+      origin: [
+        'http://localhost:3000',
+        'https://ai-ta-e9o6.onrender.com',
+        'https://ai-ta.xyz',
+      ],
+    }),
+  ); // 'http://localhost:3000';
+
   // Gives express the ability to parse client cookies and add them to req.cookies
   app.use(cookieParser(process.env.COOKIE_SECRET));
 
@@ -47,6 +60,8 @@ const createExpressApp = (sessionStore: MongoStore): express.Express => {
       store: sessionStore, // use MongoDB to store session info
       cookie: {
         maxAge: 1000 * 60 * 60 * 24, // 1 day
+        secure: true, // TODO: SET TO FALSE ON LOCALHOST
+        sameSite: 'none',
       },
     }),
   );

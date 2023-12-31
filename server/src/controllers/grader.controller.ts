@@ -16,7 +16,7 @@ import mammoth from 'mammoth';
  * Get OpenAI's grade for an essay given a file, and grading params
  */
 var assistant: any = {
-    id: 'asst_6ujXj7V7lLO30g8c1bzcOQ6Z'
+  id: 'asst_6ujXj7V7lLO30g8c1bzcOQ6Z',
 };
 
 const makeAssistant = async () => {
@@ -28,37 +28,37 @@ const makeAssistant = async () => {
   assistant = await openai.beta.assistants.create({
     name: 'Essay Grader',
     description:
-      'You are great at grading assignments and giving feedback for students in grade school. One of your many skills include giving nuanced, detailed, relevant, and easily understandable feedback for assignments like essays, that will help students improve. You are also skilled at giving specific feedback. For example, you often cite examples from the student\'s writing when giving feedback.',
+      "You are great at grading assignments and giving feedback for students in grade school. One of your many skills include giving nuanced, detailed, relevant, and easily understandable feedback for assignments like essays, that will help students improve. You are also skilled at giving specific feedback. For example, you often cite examples from the student's writing when giving feedback.",
     model: 'gpt-4-1106-preview',
   });
   console.log(assistant.id);
 };
 
-const extractTextFromTxt = (filePath : any) => {
-    return fs.readFileSync(filePath, 'utf8');
-  };
+const extractTextFromTxt = (filePath: any) => {
+  return fs.readFileSync(filePath, 'utf8');
+};
 
-const extractTextFromDocx = async (filePath : any) => {
-    try {
-      const result = await mammoth.extractRawText({ path: filePath });
-      return result.value; // The raw text
-    } catch (error) {
-      console.error('Error extracting text from docx:', error);
-      throw error;
-    }
+const extractTextFromDocx = async (filePath: any) => {
+  try {
+    const result = await mammoth.extractRawText({ path: filePath });
+    return result.value; // The raw text
+  } catch (error) {
+    console.error('Error extracting text from docx:', error);
+    throw error;
+  }
 };
 
 const pdf = require('pdf-parse');
-const extractTextFromPDF = async (filePath : any) => {
-    let dataBuffer = fs.readFileSync(filePath);
-    try {
-      let data = await pdf(dataBuffer);
-      return data.text; // The text content of the PDF
-    } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw error;
-    }
-  };
+const extractTextFromPDF = async (filePath: any) => {
+  let dataBuffer = fs.readFileSync(filePath);
+  try {
+    let data = await pdf(dataBuffer);
+    return data.text; // The text content of the PDF
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw error;
+  }
+};
 
 const makeAssistantWithFile = async (
   req: express.Request,
@@ -72,12 +72,14 @@ const makeAssistantWithFile = async (
   try {
     // const id = req.params.id;
     if (req.file) {
-      console.log('Make assistant with file. Got a file, will start processing');
+      console.log(
+        'Make assistant with file. Got a file, will start processing',
+      );
       const grade = req.body.grade;
       const criteria = req.body.criteria;
-      console.log("grade = ", grade);
-      console.log("criteria = ", criteria);
-    
+      console.log('grade = ', grade);
+      console.log('criteria = ', criteria);
+
       // Extract text from file
       let extractedText;
       switch (req.file.mimetype) {
@@ -111,10 +113,12 @@ const makeAssistantWithFile = async (
       }
 
       console.log(assistant.id);
-      var prompt = grade? `You are a TA for a grade ${grade} english class.` : `You are a TA for an english class.`;
-        if (criteria) {
-            prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
-        }
+      var prompt = grade
+        ? `You are a TA for a grade ${grade} english class.`
+        : `You are a TA for an english class.`;
+      if (criteria) {
+        prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
+      }
       prompt += ` Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student's writing. Student's essay is below: \n${extractedText}`;
       console.log('prompt = ', prompt);
 
@@ -141,21 +145,21 @@ const makeAssistantWithFile = async (
       const threadMessages = await openai.beta.threads.messages.list(thread.id);
       console.log(threadMessages);
       console.log('last message =', threadMessages.data[0].content);
-    
+
       if (run.status != 'completed') {
         console.log('Thread stopped running, but didnt complete');
         return res.status(400).json({
           extractedText: extractedText,
           runStatus: run.status,
-          responseMessage: 'Sorry, I was unable to grade this essay. Please try again.',
+          responseMessage:
+            'Sorry, I was unable to grade this essay. Please try again.',
         });
       }
       res.status(StatusCode.OK).json({
         extractedText: extractedText,
         runStatus: run.status,
-        responseMessage: threadMessages.data[0].content
+        responseMessage: threadMessages.data[0].content,
       });
-    
     }
   } catch (err) {
     console.log('Error uploading file in controller');

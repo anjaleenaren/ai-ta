@@ -82,7 +82,7 @@ function HomePage() {
           Grade Essays
         </PrimaryButton>
       </Grid>
-      
+
       {/* <Grid item container justifyContent="center">
         <PromoteButton
           admin={admin}
@@ -90,7 +90,7 @@ function HomePage() {
           navigator={navigator}
         />
       </Grid> */}
-      
+
       <Grid item container justifyContent="center">
         <Button onClick={handleLogout}>Logout</Button>
       </Grid>
