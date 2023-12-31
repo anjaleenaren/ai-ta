@@ -134,7 +134,7 @@ function LoginPage() {
         <FormCol>
           <Grid item container justifyContent="center">
             <Typography variant="h2" textAlign="center">
-              Welcome to Boilerplate
+              Get Ready to Meet Your AI Teaching Assistant!
             </Typography>
           </Grid>
           <Grid item width="1">
