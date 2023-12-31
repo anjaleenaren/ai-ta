@@ -14,6 +14,7 @@ import {
 import ScreenGrid from './components/ScreenGrid';
 import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const BACKENDURL = process.env.PUBLIC_URL
   ? process.env.PUBLIC_URL
@@ -22,6 +23,7 @@ const BACKENDURL = process.env.PUBLIC_URL
 const URLPREFIX = `${BACKENDURL}/api`;
 
 function GradeEssay() {
+  const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
   const [criteria, setCriteria] = useState('');
@@ -34,8 +36,14 @@ function GradeEssay() {
   const calculateRows = () => {
     const windowHeight = window.innerHeight;
     // Adjust these values based on your layout and preferences
-    const rowsForFileContent = Math.max(5, Math.min(25, Math.floor(windowHeight / 60)));
-    const rowsForFeedback = Math.max(3, Math.min(20, Math.floor(windowHeight / 70)));
+    const rowsForFileContent = Math.max(
+      5,
+      Math.min(25, Math.floor(windowHeight / 60)),
+    );
+    const rowsForFeedback = Math.max(
+      3,
+      Math.min(20, Math.floor(windowHeight / 70)),
+    );
 
     console.log(rowsForFileContent, rowsForFeedback);
 
@@ -49,7 +57,7 @@ function GradeEssay() {
     return () => window.removeEventListener('resize', calculateRows);
   }, []);
 
-  const handleFileChange = async (event : any) => {
+  const handleFileChange = async (event: any) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
@@ -57,22 +65,23 @@ function GradeEssay() {
 
       const formData = new FormData();
       formData.append('file', file);
-      console.log("grade and criteria ", grade, criteria);
+      console.log('grade and criteria ', grade, criteria);
       formData.append('grade', grade); // Append grade
       formData.append('criteria', criteria); // Append criteria
-
+      setLoading(true);
       try {
         const url = 'grader/upload-essay';
         const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
 
         // Handle response here
         console.log(response.data);
-        console.log(response.data.responseMessage[0]?.text?.value)
+        console.log(response.data.responseMessage[0]?.text?.value);
         setFeedback(response.data.responseMessage[0]?.text?.value);
         setExtractedText(response.data.extractedText);
       } catch (error) {
         console.error('Error uploading file:', error);
       }
+      setLoading(false);
     }
   };
 
@@ -81,9 +90,14 @@ function GradeEssay() {
   };
 
   return (
-    <Box marginLeft="30px" marginRight="30px" flex="vertical" overflow="scroll">
-    <ScreenGrid>
-    {/* Hidden file input */}
+    <Box
+      margin="30px"
+      display="flex" // Ensure it's a flex container
+      flexDirection="column" // Assuming you want a column layout
+      alignItems="flex-start" // Align items to the start of cross axis
+      overflow="scroll"
+    >
+      {/* Hidden file input */}
       <input
         type="file"
         id="file-upload"
@@ -93,7 +107,13 @@ function GradeEssay() {
       />
 
       {/* Button to trigger file upload */}
-      <Grid item container justifyContent="center" alignItems="center" spacing={2}>
+      <Grid
+        item
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        style={{ width: '100%', margin: 0 }}
+      >
         <Grid item>
           <TextField
             label="Grade"
@@ -108,21 +128,40 @@ function GradeEssay() {
             variant="outlined"
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
+            sx={{ flexGrow: 1 }}
           />
         </Grid>
         <Grid item>
-        <PrimaryButton variant="contained" onClick={uploadFile} style={{ height: '100%' }}>
-          Upload Essay
-        </PrimaryButton>
+          <PrimaryButton
+            variant="contained"
+            onClick={uploadFile}
+            style={{ height: '100%' }}
+          >
+            Upload Essay
+          </PrimaryButton>
         </Grid>
       </Grid>
-      
 
       {/* Display the selected file */}
       {selectedFile && (
         <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
-          <Typography variant="body1">Selected File: {selectedFile.name}</Typography>
+          <Typography variant="body1">
+            Selected File: {selectedFile.name}
+          </Typography>
         </Grid>
+      )}
+
+      {/* Loading button */}
+      {loading && (
+        <Box
+          margin="50px"
+          display="flex" // Set display to flex
+          justifyContent="center" // Center horizontally
+          alignItems="center" // Center vertically
+          width="100%"
+        >
+          <CircularProgress size={75} />
+        </Box>
       )}
 
       {/* File Viewer */}
@@ -143,21 +182,28 @@ function GradeEssay() {
       )}
 
       {/* Passes it to openAI to get feedback and grade */}
-      <Grid marginTop="20px" item container width="100%" justifyContent="center">
-        <TextField
-          id="outlined-multiline-flexible"
-          label="Feedback"
-          multiline
-          rows={feedbackRows}
-          value={feedback}
-          onChange={(event) => setFeedback(event.target.value)}
-          variant="outlined"
-          fullWidth
-        />
-      </Grid>
+      {feedback && (
+        <Grid
+          marginTop="20px"
+          item
+          container
+          width="100%"
+          justifyContent="center"
+        >
+          <TextField
+            id="outlined-multiline-flexible"
+            label="Feedback"
+            multiline
+            rows={feedbackRows}
+            value={feedback}
+            onChange={(event) => setFeedback(event.target.value)}
+            variant="outlined"
+            fullWidth
+          />
+        </Grid>
+      )}
 
       {/* Displays the feedback and grade */}
-    </ScreenGrid>
     </Box>
   );
 }
