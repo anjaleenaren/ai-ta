@@ -15,7 +15,9 @@ import mammoth from 'mammoth';
 /**
  * Get OpenAI's grade for an essay given a file, and grading params
  */
-var assistant: any = 'asst_YKlxmmzbedS2zWEy7WucJvqP';
+var assistant: any = {
+    id: 'asst_6ujXj7V7lLO30g8c1bzcOQ6Z'
+};
 
 const makeAssistant = async () => {
   console.log('Make assistant');
@@ -66,18 +68,11 @@ const makeAssistantWithFile = async (
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  console.log('Enter make assistant with file');
-  const list = await openai.files.list();
-
-  for await (const file of list) {
-    console.log(file);
-  }
 
   try {
-    console.log('Enter try, file =', req.file);
     // const id = req.params.id;
     if (req.file) {
-      console.log('Make assistant with file');
+      console.log('Make assistant with file. Got a file, will start processing');
 
       // Extract text from file
       let extractedText;
@@ -103,26 +98,14 @@ const makeAssistantWithFile = async (
         file: fs.createReadStream(req.file.path),
         purpose: 'assistants',
       });
-      console.log('openai fileid = ', file.id);
-
-      const file_get = await openai.files.retrieve(file.id);
-
-      console.log(file_get);
       */
-
-      // Add the file to the assistant
-      // const assistant = await openai.beta.assistants.create({
-      //     instructions: "You are a TA for a grade 8 english class. Provide feedback on the following essay.",
-      //     model: "gpt-4-1106-preview",
-      //     // tools: [{"type": "retrieval"}],
-      //     // file_ids: [file.id]
-      // });
 
       if (!assistant || !assistant.id) {
         // Take this out after making the first assisstant and hardcode the id
         await makeAssistant();
         console.log('made assistant');
       }
+
       console.log(assistant.id);
 
       const thread = await openai.beta.threads.create({
@@ -149,8 +132,22 @@ const makeAssistantWithFile = async (
       const threadMessages = await openai.beta.threads.messages.list(thread.id);
       console.log(threadMessages);
       console.log('last message =', threadMessages.data[0].content);
+    
+      if (run.status != 'completed') {
+        console.log('Thread stopped running, but didnt complete');
+        return res.status(400).json({
+          extractedText: extractedText,
+          runStatus: run.status,
+          responseMessage: 'Sorry, I was unable to grade this essay. Please try again.',
+        });
+      }
+      res.status(StatusCode.OK).json({
+        extractedText: extractedText,
+        runStatus: run.status,
+        responseMessage: threadMessages.data[0].content
+      });
+    
     }
-    res.status(StatusCode.OK).json('success');
   } catch (err) {
     console.log('Error uploading file in controller');
     console.log(err);
