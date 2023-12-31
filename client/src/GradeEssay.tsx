@@ -13,16 +13,39 @@ import {
 import ScreenGrid from './components/ScreenGrid';
 import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
+import mammoth from 'mammoth';
 
 function GradeEssay() {
   const [feedback, setFeedback] = React.useState('');
   const [grade, setGrade] = React.useState(0);
   const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [fileContent, setFileContent] = useState('');
 
-  const handleFileChange = (event : any) => {
+  const handleFileChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
+      if (file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          setFileContent(e.target.result);
+        };
+        reader.readAsText(file);
+      } else if (file.name.endsWith('.docx')) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const arrayBuffer = e.target.result;
+          mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+            .then((result) => {
+              setFileContent(result.value);
+            })
+            .catch((err) => {
+              console.log(err);
+              setFileContent('Error reading .docx file');
+            });
+        };
+        reader.readAsArrayBuffer(file);
+      }
     }
   };
 
