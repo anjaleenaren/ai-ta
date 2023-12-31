@@ -73,7 +73,11 @@ const makeAssistantWithFile = async (
     // const id = req.params.id;
     if (req.file) {
       console.log('Make assistant with file. Got a file, will start processing');
-
+      const grade = req.body.grade;
+      const criteria = req.body.criteria;
+      console.log("grade = ", grade);
+      console.log("criteria = ", criteria);
+    
       // Extract text from file
       let extractedText;
       switch (req.file.mimetype) {
@@ -107,13 +111,18 @@ const makeAssistantWithFile = async (
       }
 
       console.log(assistant.id);
+      var prompt = grade? `You are a TA for a grade ${grade} english class.` : `You are a TA for an english class.`;
+        if (criteria) {
+            prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
+        }
+      prompt += ` Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student's writing. Student's essay is below: \n${extractedText}`;
+      console.log('prompt = ', prompt);
 
       const thread = await openai.beta.threads.create({
         messages: [
           {
             role: 'user',
-            content:
-              'You are a TA for a grade 11 english class. Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student\'s writing. Student\'s essay is below: \n' + extractedText,
+            content: prompt,
             // file_ids: [file.id],
           },
         ],

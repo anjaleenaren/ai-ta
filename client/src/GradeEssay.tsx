@@ -23,7 +23,8 @@ const URLPREFIX = `${BACKENDURL}/api`;
 
 function GradeEssay() {
   const [feedback, setFeedback] = React.useState(``);
-  const [grade, setGrade] = React.useState(0);
+  const [grade, setGrade] = useState('');
+  const [criteria, setCriteria] = useState('');
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [extractedText, setExtractedText] = useState(``);
 
@@ -56,6 +57,9 @@ function GradeEssay() {
 
       const formData = new FormData();
       formData.append('file', file);
+      console.log("grade and criteria ", grade, criteria);
+      formData.append('grade', grade); // Append grade
+      formData.append('criteria', criteria); // Append criteria
 
       try {
         const url = 'grader/upload-essay';
@@ -89,11 +93,30 @@ function GradeEssay() {
       />
 
       {/* Button to trigger file upload */}
-      <Grid item container justifyContent="center">
-        <PrimaryButton variant="contained" onClick={uploadFile}>
-          Upload an Essay (.docx, .txt, .pdf)
+      <Grid item container justifyContent="center" alignItems="center" spacing={2}>
+        <Grid item>
+          <TextField
+            label="Grade"
+            variant="outlined"
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            label="Specific Criteria"
+            variant="outlined"
+            value={criteria}
+            onChange={(e) => setCriteria(e.target.value)}
+          />
+        </Grid>
+        <Grid item>
+        <PrimaryButton variant="contained" onClick={uploadFile} style={{ height: '100%' }}>
+          Upload Essay
         </PrimaryButton>
+        </Grid>
       </Grid>
+      
 
       {/* Display the selected file */}
       {selectedFile && (
