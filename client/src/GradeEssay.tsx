@@ -116,7 +116,7 @@ function GradeEssay() {
       >
         <Grid item>
           <TextField
-            label="Grade"
+            label="Class Grade"
             variant="outlined"
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
