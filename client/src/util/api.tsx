@@ -41,7 +41,7 @@ async function resolve(promise: Promise<any>) {
 /**
  * To UPDATE DURING DEPLOYMENT USING ENVIRONMENT VARIABLES
  */
-const BACKENDURL = process.env.PUBLIC_URL
+const BACKENDURL = process.env.BACKEND_URL
   ? process.env.PUBLIC_URL
   : 'http://localhost:4000';
 
