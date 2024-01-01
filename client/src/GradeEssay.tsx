@@ -16,8 +16,8 @@ import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 
-const BACKENDURL = process.env.BACKEND_URL
-  ? process.env.PUBLIC_URL
+const BACKENDURL = process.env.PUBLIC_URL
+  ? 'https://ai-ta-backend.onrender.com'
   : 'http://localhost:4000';
 
 const URLPREFIX = `${BACKENDURL}/api`;
