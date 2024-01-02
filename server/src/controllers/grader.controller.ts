@@ -2,7 +2,7 @@
  * All the controller functions containing the logic for routes relating to
  * grading (such as dealing with OpenAI, and pushing to database)
  */
-import express from 'express';
+import express, { response } from 'express';
 import crypto from 'crypto';
 import ApiError from '../util/apiError';
 import StatusCode from '../util/statusCode';
@@ -135,31 +135,87 @@ const makeAssistantWithFile = async (
       var run = await openai.beta.threads.runs.create(thread.id, {
         assistant_id: assistant.id,
       });
-      console.log(run);
-      // Wait for run.status to be completed
-      while (run.status == 'queued' || run.status == 'in_progress') {
-        await new Promise((r) => setTimeout(r, 500));
-        run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-      }
-      console.log('run status = ', run.status);
-      const threadMessages = await openai.beta.threads.messages.list(thread.id);
-      console.log(threadMessages);
-      console.log('last message =', threadMessages.data[0].content);
 
-      if (run.status != 'completed') {
-        console.log('Thread stopped running, but didnt complete');
-        return res.status(400).json({
-          extractedText: extractedText,
-          runStatus: run.status,
-          responseMessage:
-            'Sorry, I was unable to grade this essay. Please try again.',
-        });
-      }
-      res.status(StatusCode.OK).json({
-        extractedText: extractedText,
-        runStatus: run.status,
-        responseMessage: threadMessages.data[0].content,
+      const thread2 = await openai.beta.threads.create({
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+            // file_ids: [file.id],
+          },
+        ],
       });
+
+      var run2 = await openai.beta.threads.runs.create(thread2.id, {
+        assistant_id: assistant.id,
+      });
+
+      console.log(run);
+      
+      var runningRuns = [run, run2];
+      while (runningRuns.length > 0) {
+        var runList = []
+        for (const r of runningRuns) {
+          run = await openai.beta.threads.runs.retrieve(r.thread_id, r.id);
+          runList.push(run);
+        }
+        for (const r of runList) {
+          console.log('run status = ', r.status, " for thread ", r.thread_id);
+          // Wait for run.status to be completed
+          if (r.status != 'queued' && r.status != 'in_progress') {
+            // Stream r to the frontend
+            var responseObject;
+            if (r.status != 'completed') {
+              console.log('Thread stopped running, but didnt complete');
+              responseObject = {
+                extractedText: extractedText,
+                runStatus: r.status,
+                responseMessage:
+                  'Sorry, I was unable to grade this essay. Please try again.',
+              };
+            } else {
+              const threadMessages = await openai.beta.threads.messages.list(
+                r.thread_id,
+              );
+              responseObject = {
+                extractedText: extractedText,
+                runStatus: r.status,
+                responseMessage: threadMessages.data[0].content,
+              };
+            }
+
+            res.write(JSON.stringify(responseObject) + '\n');
+            // Remove r from runList
+            runningRuns = runList.filter((item) => item !== r);
+          }
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      res.end();
+      // Wait for run.status to be completed
+      //   while (run.status == 'queued' || run.status == 'in_progress') {
+      //     await new Promise((r) => setTimeout(r, 500));
+      //     run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      //   }
+      //   console.log('run status = ', run.status);
+      //   const threadMessages = await openai.beta.threads.messages.list(thread.id);
+      //   console.log(threadMessages);
+      //   console.log('last message =', threadMessages.data[0].content);
+
+      //   if (run.status != 'completed') {
+      //     console.log('Thread stopped running, but didnt complete');
+      //     return res.status(400).json({
+      //       extractedText: extractedText,
+      //       runStatus: run.status,
+      //       responseMessage:
+      //         'Sorry, I was unable to grade this essay. Please try again.',
+      //     });
+      //   }
+      //   res.status(StatusCode.OK).json({
+      //     extractedText: extractedText,
+      //     runStatus: run.status,
+      //     responseMessage: threadMessages.data[0].content,
+      //   });
     }
   } catch (err) {
     console.log('Error uploading file in controller');

@@ -16,6 +16,13 @@ import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 
+// define the type of the response from the server
+interface EssayResponse {
+    extractedText: string;
+    runStatus: string;
+    responseMessage: string;
+  }
+
 const BACKENDURL = process.env.PUBLIC_URL
   ? 'https://ai-ta-backend.onrender.com'
   : 'http://localhost:4000';
@@ -23,6 +30,7 @@ const BACKENDURL = process.env.PUBLIC_URL
 const URLPREFIX = `${BACKENDURL}/api`;
 
 function GradeEssay() {
+    const [essays, setEssays] = useState<EssayResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
@@ -72,6 +80,22 @@ function GradeEssay() {
       try {
         const url = 'grader/upload-essay';
         const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
+        let dataBuffer = '';
+
+        response.data.on('data', (chunk: Buffer) => {
+          dataBuffer += chunk.toString();
+          const lines = dataBuffer.split('\n');
+          if (lines.length > 1) {
+            dataBuffer = lines.pop() || '';
+            lines.forEach(line => {
+              if (line) {
+                const essay: EssayResponse = JSON.parse(line);
+                console.log(essay);
+                setEssays(prevEssays => [...prevEssays, essay]);
+              }
+            });
+          }
+        });
 
         // Handle response here
         console.log(response.data);
