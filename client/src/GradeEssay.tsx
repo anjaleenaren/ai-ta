@@ -122,14 +122,13 @@ function GradeEssay() {
     }
 
     if (files.length > 0) {
-
       const formData = new FormData();
       files.forEach((file, index) => {
         formData.append('files', file);
-    });
+      });
       console.log('grade and criteria ', grade, criteria);
       formData.append('grade', grade); // Append grade
-      formData.append('name', name) // Append student name
+      formData.append('name', name); // Append student name
       formData.append('criteria', criteria); // Append criteria
       setLoading(true);
       try {
@@ -189,43 +188,45 @@ function GradeEssay() {
 
       {/* Button to trigger file upload */}
       <Grid
-        item
         container
         justifyContent="space-between"
         alignItems="center"
         style={{ width: '100%', margin: 0 }}
       >
-        <Grid item>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
           <TextField
+            fullWidth
             label="Class Grade"
             variant="outlined"
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
           />
         </Grid>
-        <Grid item>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
           <TextField
+            fullWidth
             label="Student Name"
             variant="outlined"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </Grid>
-        <Grid item>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
           <TextField
+            fullWidth
             label="Specific Criteria"
             variant="outlined"
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
             onFocus={() => setIsCriteriaFocused(true)}
             onBlur={() => setIsCriteriaFocused(false)}
-            multiline = {isCriteriaFocused}
+            multiline={isCriteriaFocused}
             maxRows={5}
-            sx={{ flexGrow: 1 }}
           />
         </Grid>
-        <Grid item>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
           <PrimaryButton
+            fullWidth
             variant="contained"
             onClick={uploadFile}
             style={{ height: '100%' }}

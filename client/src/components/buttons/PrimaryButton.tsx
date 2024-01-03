@@ -9,7 +9,7 @@ const PrimaryButton = styled(Button)<ButtonProps>(({ theme }) => ({
   cursor: 'pointer',
   boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
   borderRadius: '5px',
-  padding: '0.7rem 2rem',
+  padding: '0.95rem 2rem',
   border: 'none',
   color: 'white',
   textDecoration: 'none',
