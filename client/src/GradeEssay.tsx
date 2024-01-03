@@ -65,7 +65,9 @@ function GradeEssay() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
+  const [name, setName] = useState('');
   const [criteria, setCriteria] = useState('');
+  const [isCriteriaFocused, setIsCriteriaFocused] = useState(false);
   // const [selectedFile, setSelectedFile] = useState<any>(null);
   const [extractedText, setExtractedText] = useState(``);
 
@@ -127,6 +129,7 @@ function GradeEssay() {
     });
       console.log('grade and criteria ', grade, criteria);
       formData.append('grade', grade); // Append grade
+      formData.append('name', name) // Append student name
       formData.append('criteria', criteria); // Append criteria
       setLoading(true);
       try {
@@ -202,10 +205,22 @@ function GradeEssay() {
         </Grid>
         <Grid item>
           <TextField
+            label="Student Name"
+            variant="outlined"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
             label="Specific Criteria"
             variant="outlined"
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
+            onFocus={() => setIsCriteriaFocused(true)}
+            onBlur={() => setIsCriteriaFocused(false)}
+            multiline = {isCriteriaFocused}
+            maxRows={5}
             sx={{ flexGrow: 1 }}
           />
         </Grid>
