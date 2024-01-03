@@ -22,7 +22,40 @@ const BACKENDURL = process.env.PUBLIC_URL
 
 const URLPREFIX = `${BACKENDURL}/api`;
 
+type EssayResponse = {
+  extractedText: string;
+  runStatus: string;
+  responseMessage: string;
+};
+
+async function processStream(stream: ReadableStream<Uint8Array>, callback: (data: EssayResponse) => void) {
+  const reader = stream.getReader();
+  let dataBuffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = new TextDecoder().decode(value);
+    dataBuffer += chunk;
+
+    // Assuming each JSON object is separated by a newline
+    const parts = dataBuffer.split('\n');
+    for (let i = 0; i < parts.length - 1; i++) {
+      try {
+        const parsedObject = JSON.parse(parts[i]);
+        callback(parsedObject);
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+    }
+
+    dataBuffer = parts[parts.length - 1];
+  }
+}
+
 function GradeEssay() {
+  const [responses, setResponses] = useState<EssayResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
@@ -70,14 +103,29 @@ function GradeEssay() {
       formData.append('criteria', criteria); // Append criteria
       setLoading(true);
       try {
-        const url = 'grader/upload-essay';
-        const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
+        // const url = 'grader/upload-essay';
+        // const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
 
-        // Handle response here
-        console.log(response.data);
-        console.log(response.data.responseMessage[0]?.text?.value);
-        setFeedback(response.data.responseMessage[0]?.text?.value);
-        setExtractedText(response.data.extractedText);
+        // // Handle response here
+        // console.log(response.data);
+        // console.log(response.data.responseMessage[0]?.text?.value);
+        // setFeedback(response.data.responseMessage[0]?.text?.value);
+        // setExtractedText(response.data.extractedText);
+
+        const response = await fetch(`${URLPREFIX}/grader/upload-essay`, {
+          method: 'POST',
+          body: formData
+        });
+    
+        if (response.body) {
+          await processStream(response.body, (data: EssayResponse) => {
+            console.log(data);
+            setResponses(prev => [...prev, data]);
+          });
+        }
+    
+        setLoading(false);
+
       } catch (error) {
         console.error('Error uploading file:', error);
       }
