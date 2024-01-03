@@ -59,37 +59,38 @@ async function processStream(
 }
 
 function GradeEssay() {
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [pageNum, setPageNum] = useState(-1); // Display a different response on each page
   const [responses, setResponses] = useState<EssayResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
   const [criteria, setCriteria] = useState('');
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+  // const [selectedFile, setSelectedFile] = useState<any>(null);
   const [extractedText, setExtractedText] = useState(``);
 
   const [fileContentRows, setFileContentRows] = useState(10);
   const [feedbackRows, setFeedbackRows] = useState(10);
 
-  const handlePageNum = (num : number) => {
+  const handlePageNum = (num: number) => {
     console.log(responses);
     if (num < 0) num = 0;
     if (num > responses.length - 1) num = responses.length - 1;
     setPageNum(num);
-    setExtractedText(responses[num].extractedText); 
+    setExtractedText(responses[num].extractedText);
     setFeedback(responses[num].responseMessage[0]?.text?.value);
-  }
+  };
 
   const calculateRows = () => {
     const windowHeight = window.innerHeight;
     // Adjust these values based on your layout and preferences
     const rowsForFileContent = Math.max(
-      5,
-      Math.min(25, Math.floor(windowHeight / 60)),
+      3,
+      Math.min(20, Math.floor(windowHeight / 75)),
     );
     const rowsForFeedback = Math.max(
-      3,
-      Math.min(20, Math.floor(windowHeight / 70)),
+      5,
+      Math.min(25, Math.floor(windowHeight / 60)),
     );
 
     console.log(rowsForFileContent, rowsForFeedback);
@@ -105,13 +106,25 @@ function GradeEssay() {
   }, []);
 
   const handleFileChange = async (event: any) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      console.log(file);
+    let files: File[] = [];
+    if (event.target.files && event.target.files.length > 0) {
+      // Iterate through files, and push the ones that haven't already been uploaded
+      for (let i = 0; i < event.target.files.length; i++) {
+        const newFile = event.target.files[i];
+        if (!uploadedFiles.includes(newFile)) {
+          console.log(newFile);
+          files.push(newFile);
+          setUploadedFiles((prev) => [...prev, newFile]);
+        }
+      }
+    }
+
+    if (files.length > 0) {
 
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach((file, index) => {
+        formData.append('files', file);
+    });
       console.log('grade and criteria ', grade, criteria);
       formData.append('grade', grade); // Append grade
       formData.append('criteria', criteria); // Append criteria
@@ -138,11 +151,9 @@ function GradeEssay() {
             setExtractedText(data.extractedText);
             setFeedback(data.responseMessage[0]?.text?.value);
             setResponses((prev) => [...prev, data]);
-            console.log(responses);
           });
         }
-
-        
+        console.log(responses);
         setPageNum(0);
       } catch (error) {
         console.error('Error uploading file:', error);
@@ -170,6 +181,7 @@ function GradeEssay() {
         style={{ display: 'none' }}
         onChange={handleFileChange}
         accept=".docx,.txt,.pdf"
+        multiple
       />
 
       {/* Button to trigger file upload */}
@@ -209,13 +221,13 @@ function GradeEssay() {
       </Grid>
 
       {/* Display the selected file */}
-      {selectedFile && (
+      {/* {selectedFile && (
         <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
           <Typography variant="body1">
             Selected File: {selectedFile.name}
           </Typography>
         </Grid>
-      )}
+      )} */}
 
       {/* Loading button */}
       {loading && (
@@ -269,32 +281,34 @@ function GradeEssay() {
         </Grid>
       )}
       {/* Next Button to Switch Responses */}
-      {responses.length > 1 && <Grid
-        item
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        style={{ width: '100%', margin: 0 }}
-      >
-        <Grid item>
-          <PrimaryButton
-            variant="contained"
-            onClick={() => handlePageNum(pageNum - 1)}
-            style={{ height: '100%' }}
-          >
-            Previous
-          </PrimaryButton>
+      {responses.length > 1 && (
+        <Grid
+          item
+          container
+          justifyContent="space-between"
+          alignItems="center"
+          style={{ width: '100%', marginTop: 15 }}
+        >
+          <Grid item>
+            <PrimaryButton
+              variant="contained"
+              onClick={() => handlePageNum(pageNum - 1)}
+              style={{ height: '100%' }}
+            >
+              Previous
+            </PrimaryButton>
+          </Grid>
+          <Grid item>
+            <PrimaryButton
+              variant="contained"
+              onClick={() => handlePageNum(pageNum + 1)}
+              style={{ height: '100%' }}
+            >
+              Next
+            </PrimaryButton>
+          </Grid>
         </Grid>
-        <Grid item>
-          <PrimaryButton
-            variant="contained"
-            onClick={() => handlePageNum(pageNum + 1)}
-            style={{ height: '100%' }}
-          >
-            Next
-          </PrimaryButton>
-        </Grid>
-      </Grid> }
+      )}
 
       {/* Displays the feedback and grade */}
     </Box>

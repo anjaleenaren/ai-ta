@@ -71,40 +71,13 @@ const makeAssistantWithFile = async (
 
   try {
     // const id = req.params.id;
-    if (req.file) {
-      console.log(
-        'Make assistant with file. Got a file, will start processing',
-      );
+    if (req.files) {
+      console.log('Received files:', req.files);
+
       const grade = req.body.grade;
       const criteria = req.body.criteria;
       console.log('grade = ', grade);
       console.log('criteria = ', criteria);
-
-      // Extract text from file
-      let extractedText;
-      switch (req.file.mimetype) {
-        case 'text/plain':
-          extractedText = extractTextFromTxt(req.file.path);
-          break;
-        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-          extractedText = await extractTextFromDocx(req.file.path);
-          break;
-        case 'application/pdf':
-          extractedText = await extractTextFromPDF(req.file.path);
-          break;
-        default:
-          return res.status(400).send('Unsupported file type');
-      }
-
-      console.log('extracted text = ', extractedText);
-      /* File Upload - Doesn't work for Threads Yet
-      // make openai request ->
-      // Upload a file with an "assistants" purpose
-      const file = await openai.files.create({
-        file: fs.createReadStream(req.file.path),
-        purpose: 'assistants',
-      });
-      */
 
       if (!assistant || !assistant.id) {
         // Take this out after making the first assisstant and hardcode the id
@@ -112,59 +85,82 @@ const makeAssistantWithFile = async (
         console.log('made assistant');
       }
 
-      console.log(assistant.id);
-      var prompt = grade
-        ? `You are a TA for a grade ${grade} english class.`
-        : `You are a TA for an english class.`;
-      if (criteria) {
-        prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
-      }
-      prompt += ` Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student's writing. Student's essay is below: \n${extractedText}`;
-      console.log('prompt = ', prompt);
+      // Process each file
+      const files = req.files as Express.Multer.File[];
+      let runningRuns: any = [];
+      // Associated extracted texts to runs
+      let extractedTexts: any = {};
+      for (const file of files) {
+        // Extract text from file
+        let extractedText;
+        switch (file.mimetype) {
+          case 'text/plain':
+            extractedText = extractTextFromTxt(file.path);
+            break;
+          case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            extractedText = await extractTextFromDocx(file.path);
+            break;
+          case 'application/pdf':
+            extractedText = await extractTextFromPDF(file.path);
+            break;
+          default:
+            // return res.status(400).send('Unsupported file type');
+            break;
+        }
 
-      const thread = await openai.beta.threads.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-            // file_ids: [file.id],
-          },
-        ],
-      });
+        // console.log('extracted text = ', extractedText);
 
-      var run = await openai.beta.threads.runs.create(thread.id, {
-        assistant_id: assistant.id,
-      });
+        console.log(assistant.id);
+        var prompt = grade
+          ? `You are a TA for a grade ${grade} english class. Write your feedback with a tone and style that is appropriate for a ${grade}th grader.`
+          : `You are a TA for an english class.`;
+        if (criteria) {
+          prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
+        }
+        prompt += ` Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student's writing. Student's essay is below: \n${extractedText}`;
+        console.log('prompt = ', prompt);
 
-      const thread2 = await openai.beta.threads.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-            // file_ids: [file.id],
-          },
-        ],
-      });
+        const thread = await openai.beta.threads.create({
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+              // file_ids: [file.id],
+            },
+          ],
+        });
 
-      var run2 = await openai.beta.threads.runs.create(thread2.id, {
-        assistant_id: assistant.id,
-      });
+        var run = await openai.beta.threads.runs.create(thread.id, {
+          assistant_id: assistant.id,
+        });
 
-      console.log(run);
-      
-      var runningRuns = [run, run2];
+        runningRuns.push(run);
+        extractedTexts[run.id] = extractedText;
+      };
+
+      console.log('here');
+
+      console.log('\n \n \n runningRuns = ', runningRuns);
+
       while (runningRuns.length > 0) {
-        var runList = []
+        console.log('In while loop');
+        var runList = [];
         for (const r of runningRuns) {
-          run = await openai.beta.threads.runs.retrieve(r.thread_id, r.id);
+          const run = await openai.beta.threads.runs.retrieve(
+            r.thread_id,
+            r.id,
+          );
           runList.push(run);
         }
         for (const r of runList) {
-          console.log('run status = ', r.status, " for thread ", r.thread_id);
+          console.log('run status = ', r.status, ' for thread ', r.thread_id);
           // Wait for run.status to be completed
           if (r.status != 'queued' && r.status != 'in_progress') {
             // Stream r to the frontend
             var responseObject;
+            const extractedText = extractedTexts[r.id]
+              ? extractedTexts[r.id]
+              : '';
             if (r.status != 'completed') {
               console.log('Thread stopped running, but didnt complete');
               responseObject = {
@@ -192,30 +188,6 @@ const makeAssistantWithFile = async (
         await new Promise((r) => setTimeout(r, 1000));
       }
       res.end();
-      // Wait for run.status to be completed
-      //   while (run.status == 'queued' || run.status == 'in_progress') {
-      //     await new Promise((r) => setTimeout(r, 500));
-      //     run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-      //   }
-      //   console.log('run status = ', run.status);
-      //   const threadMessages = await openai.beta.threads.messages.list(thread.id);
-      //   console.log(threadMessages);
-      //   console.log('last message =', threadMessages.data[0].content);
-
-      //   if (run.status != 'completed') {
-      //     console.log('Thread stopped running, but didnt complete');
-      //     return res.status(400).json({
-      //       extractedText: extractedText,
-      //       runStatus: run.status,
-      //       responseMessage:
-      //         'Sorry, I was unable to grade this essay. Please try again.',
-      //     });
-      //   }
-      //   res.status(StatusCode.OK).json({
-      //     extractedText: extractedText,
-      //     runStatus: run.status,
-      //     responseMessage: threadMessages.data[0].content,
-      //   });
     }
   } catch (err) {
     console.log('Error uploading file in controller');

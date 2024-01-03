@@ -35,14 +35,14 @@ const upload = multer({ dest: 'uploads/' });
 router.post(
   '/upload-essay',
   (req, res, next) => {
-    upload.single('file')(req, res, function (err) {
-      if (err) {
-        // handle Multer error
-        console.log('Error uploading file');
-        return res.status(500).json({ error: err.message });
-      }
-      next();
-    });
+      upload.array('files', 10)(req, res, function (err) { // 'files' is the field name, 10 is the max number of files
+          if (err) {
+              // handle Multer error
+              console.log('Error uploading files');
+              return res.status(500).json({ error: err.message });
+          }
+          next();
+      });
   },
   makeAssistantWithFile,
 );
