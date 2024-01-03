@@ -76,8 +76,10 @@ const makeAssistantWithFile = async (
 
       const grade = req.body.grade;
       const criteria = req.body.criteria;
+      const name = req.body.name;
       console.log('grade = ', grade);
       console.log('criteria = ', criteria);
+      console.log('name = ', name);
 
       if (!assistant || !assistant.id) {
         // Take this out after making the first assisstant and hardcode the id
@@ -114,6 +116,9 @@ const makeAssistantWithFile = async (
         var prompt = grade
           ? `You are a TA for a grade ${grade} english class. Write your feedback with a tone and style that is appropriate for a ${grade}th grader.`
           : `You are a TA for an english class.`;
+        if (name) {
+          prompt += ` Please address the student by their name, ${name}`;
+        }
         if (criteria) {
           prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
         }
