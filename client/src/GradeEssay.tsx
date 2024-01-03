@@ -215,7 +215,7 @@ function GradeEssay() {
             onClick={uploadFile}
             style={{ height: '100%' }}
           >
-            Upload Essay
+            Upload Essay(s)
           </PrimaryButton>
         </Grid>
       </Grid>
