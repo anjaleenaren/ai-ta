@@ -23,12 +23,16 @@ const BACKENDURL = process.env.PUBLIC_URL
 const URLPREFIX = `${BACKENDURL}/api`;
 
 type EssayResponse = {
+  filename: string;
   extractedText: string;
   runStatus: string;
-  responseMessage: string;
+  responseMessage: any;
 };
 
-async function processStream(stream: ReadableStream<Uint8Array>, callback: (data: EssayResponse) => void) {
+async function processStream(
+  stream: ReadableStream<Uint8Array>,
+  callback: (data: EssayResponse) => void,
+) {
   const reader = stream.getReader();
   let dataBuffer = '';
 
@@ -55,6 +59,7 @@ async function processStream(stream: ReadableStream<Uint8Array>, callback: (data
 }
 
 function GradeEssay() {
+  const [pageNum, setPageNum] = useState(-1); // Display a different response on each page
   const [responses, setResponses] = useState<EssayResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
@@ -65,6 +70,15 @@ function GradeEssay() {
 
   const [fileContentRows, setFileContentRows] = useState(10);
   const [feedbackRows, setFeedbackRows] = useState(10);
+
+  const handlePageNum = (num : number) => {
+    console.log(responses);
+    if (num < 0) num = 0;
+    if (num > responses.length - 1) num = responses.length - 1;
+    setPageNum(num);
+    setExtractedText(responses[num].extractedText); 
+    setFeedback(responses[num].responseMessage[0]?.text?.value);
+  }
 
   const calculateRows = () => {
     const windowHeight = window.innerHeight;
@@ -114,18 +128,22 @@ function GradeEssay() {
 
         const response = await fetch(`${URLPREFIX}/grader/upload-essay`, {
           method: 'POST',
-          body: formData
+          body: formData,
         });
-    
+
         if (response.body) {
           await processStream(response.body, (data: EssayResponse) => {
+            if (loading) setLoading(false);
             console.log(data);
-            setResponses(prev => [...prev, data]);
+            setExtractedText(data.extractedText);
+            setFeedback(data.responseMessage[0]?.text?.value);
+            setResponses((prev) => [...prev, data]);
+            console.log(responses);
           });
         }
-    
-        setLoading(false);
 
+        
+        setPageNum(0);
       } catch (error) {
         console.error('Error uploading file:', error);
       }
@@ -250,6 +268,33 @@ function GradeEssay() {
           />
         </Grid>
       )}
+      {/* Next Button to Switch Responses */}
+      {responses.length > 1 && <Grid
+        item
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        style={{ width: '100%', margin: 0 }}
+      >
+        <Grid item>
+          <PrimaryButton
+            variant="contained"
+            onClick={() => handlePageNum(pageNum - 1)}
+            style={{ height: '100%' }}
+          >
+            Previous
+          </PrimaryButton>
+        </Grid>
+        <Grid item>
+          <PrimaryButton
+            variant="contained"
+            onClick={() => handlePageNum(pageNum + 1)}
+            style={{ height: '100%' }}
+          >
+            Next
+          </PrimaryButton>
+        </Grid>
+      </Grid> }
 
       {/* Displays the feedback and grade */}
     </Box>
