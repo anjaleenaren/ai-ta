@@ -4,7 +4,15 @@ import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { Typography, Grid, Box, Divider, Icon, IconButton, colors } from '@mui/material';
+import {
+  Typography,
+  Grid,
+  Box,
+  Divider,
+  Icon,
+  IconButton,
+  colors,
+} from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
   logout as logoutAction,
@@ -16,7 +24,7 @@ import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import COLORS from './assets/colors';
-import { DeleteOutlined} from '@material-ui/icons';
+import { DeleteOutlined } from '@material-ui/icons';
 import { Clear } from '@material-ui/icons';
 
 const BACKENDURL = process.env.PUBLIC_URL
@@ -25,13 +33,6 @@ const BACKENDURL = process.env.PUBLIC_URL
 
 const URLPREFIX = `${BACKENDURL}/api`;
 
-type EssayResponse = {
-  filename: string;
-  extractedText: string;
-  runStatus: string;
-  responseMessage: any;
-};
-
 type EssayObject = {
   name: string; // Student name
   classGrade: string; // Grade
@@ -39,6 +40,11 @@ type EssayObject = {
   file: File | null; // File
   fileContent: string; // File content (will contain just the filename if we have not yet extracted the text)
   feedback: string; // Feedback
+};
+
+type EssayResponse = {
+  index: number;
+  obj: EssayObject;
 };
 
 async function processStream(
@@ -73,7 +79,6 @@ async function processStream(
 function GradeEssay() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [pageNum, setPageNum] = useState(-1); // Display a different response on each page
-  const [responses, setResponses] = useState<EssayResponse[]>([]);
   const [rows, setRows] = useState<EssayObject[]>([]); // Used to display data for each row
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
@@ -86,15 +91,6 @@ function GradeEssay() {
 
   const [fileContentRows, setFileContentRows] = useState(10);
   const [feedbackRows, setFeedbackRows] = useState(10);
-
-  const handlePageNum = (num: number) => {
-    console.log(responses);
-    if (num < 0) num = 0;
-    if (num > responses.length - 1) num = responses.length - 1;
-    setPageNum(num);
-    setExtractedText(responses[num].extractedText);
-    setFeedback(responses[num].responseMessage[0]?.text?.value);
-  };
 
   const calculateRows = () => {
     const windowHeight = window.innerHeight;
@@ -120,56 +116,54 @@ function GradeEssay() {
     return () => window.removeEventListener('resize', calculateRows);
   }, []);
 
-  useEffect(() => {
-    if (responses.length == 1) {
-      console.log('Got first response', responses);
-      handlePageNum(0);
-    }
-  }, [responses]);
-
-  const postEssays = async (event: any) => {
-    let files: File[] = [];
-    if (event.target.files && event.target.files.length > 0) {
-      // Iterate through files, and push the ones that haven't already been uploaded
-      for (let i = 0; i < event.target.files.length; i++) {
-        const newFile = event.target.files[i];
-        if (!uploadedFiles.includes(newFile)) {
-          console.log(newFile);
-          files.push(newFile);
-          setUploadedFiles((prev) => [...prev, newFile]);
-        }
+  const postEssays = async () => {
+    // First make sure that all rows have files
+    if (!rows || rows.length < 1) return;
+    for (let i = 0; i < rows.length; i++) {
+      if (!rows[i] || !rows[i].file) {
+        alert('Oops! You forgot to upload a file for row' + (i + 1));
+        return;
       }
     }
 
-    if (files.length > 0) {
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append('files', file);
+    // Iterate through files, and push the ones that haven't already been uploaded
+    const formData = new FormData();
+    formData.append('numFiles', rows.length.toString());
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]!;
+      if (r.file && !uploadedFiles.includes(r.file!)) {
+        console.log(r.file);
+        setUploadedFiles((prev) => [...prev, r.file!]);
+
+        formData.append('files', r.file!);
+        formData.append('grade', r.classGrade);
+        formData.append('name', r.name);
+        formData.append('criteria', r.criteria);
+        formData.append('feedback', r.feedback);
+        formData.append('index', i.toString());
+      }
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${URLPREFIX}/grader/upload-essay-new`, {
+        method: 'POST',
+        body: formData,
       });
-      console.log('grade and criteria ', grade, criteria);
-      formData.append('grade', grade); // Append grade
-      formData.append('name', name); // Append student name
-      formData.append('criteria', criteria); // Append criteria
-      setLoading(true);
-      try {
-        const response = await fetch(`${URLPREFIX}/grader/upload-essay`, {
-          method: 'POST',
-          body: formData,
-        });
 
-        if (response.body) {
-          await processStream(response.body, (data: EssayResponse) => {
-            if (loading) setLoading(false);
-            console.log(data);
-            setResponses((prev) => [...prev, data]);
-          });
-        }
-        console.log(responses);
-      } catch (error) {
-        console.error('Error uploading file:', error);
+      if (response.body) {
+        await processStream(response.body, (data: EssayResponse) => {
+          if (loading) setLoading(false);
+          console.log(data);
+          const i = data.index;
+          const newRows = [...rows];
+          newRows[i] = data.obj;
+          setRows(newRows);
+        });
       }
-      setLoading(false);
+    } catch (error) {
+      console.error('Error uploading file:', error);
     }
+    setLoading(false);
   };
 
   const handleFileChange = (event: any) => {
@@ -349,118 +343,37 @@ function GradeEssay() {
           </Grid>
           {/* X button to delete this row entry */}
           <Grid item style={{ padding: '0 0px' }}>
-          <IconButton
-        onClick={() => {
-            const newRows = [...rows];
-            newRows.splice(index, 1);
-            setRows(newRows);
-        }}
-    >
-        {/* <CloseIcon /> */}
-        {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
-        <Clear style={{ color: COLORS.primaryDark }}/>
-    </IconButton>
+            <IconButton
+              onClick={() => {
+                const newRows = [...rows];
+                newRows.splice(index, 1);
+                setRows(newRows);
+              }}
+            >
+              {/* <CloseIcon /> */}
+              {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
+              <Clear style={{ color: COLORS.primaryDark }} />
+            </IconButton>
           </Grid>
         </Grid>
       ))}
 
-      {/* Display the selected file */}
-      {/* {selectedFile && (
-        <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
-          <Typography variant="body1">
-            Selected File: {selectedFile.name}
-          </Typography>
-        </Grid>
-      )} */}
-
-      {/* Loading button */}
-      {loading && (
-        <Box
-          margin="50px"
-          display="flex" // Set display to flex
-          justifyContent="center" // Center horizontally
-          alignItems="center" // Center vertically
-          width="100%"
-        >
-          <CircularProgress size={75} />
-        </Box>
-      )}
-
-      {/* File Viewer */}
-      {/* {(extractedText || feedback) && } */}
-      {extractedText && (
-        <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
-          <TextField
-            label="File Content"
-            multiline
-            rows={fileContentRows}
-            variant="outlined"
-            fullWidth
-            value={extractedText}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-        </Grid>
-      )}
-
-      {/* Passes it to openAI to get feedback and grade */}
-      {feedback && (
-        <Grid
-          marginTop="20px"
-          item
-          container
-          width="100%"
-          justifyContent="center"
-        >
-          <TextField
-            id="outlined-multiline-flexible"
-            label="Feedback"
-            multiline
-            rows={feedbackRows}
-            value={feedback}
-            onChange={(event) => setFeedback(event.target.value)}
-            variant="outlined"
-            fullWidth
-          />
-        </Grid>
-      )}
-      {/* Next Button to Switch Responses */}
-      {responses.length > 1 && (
-        <Grid
-          item
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          style={{ width: '100%', marginTop: 15 }}
-        >
-          <Grid item>
-            <PrimaryButton
-              variant="contained"
-              onClick={() => handlePageNum(pageNum - 1)}
-              style={{ height: '100%' }}
-            >
-              Previous
-            </PrimaryButton>
-          </Grid>
-          <Grid item>
-            <PrimaryButton
-              variant="contained"
-              onClick={() => handlePageNum(pageNum + 1)}
-              style={{ height: '100%' }}
-            >
-              Next
-            </PrimaryButton>
-          </Grid>
-        </Grid>
-      )}
+      {/* Button to Add a Single Essay */}
       <Grid
         container
         justifyContent="center"
         alignItems="center"
         style={{ width: '100%', padding: '10px 10px 10px 10px' }}
       >
-        <Grid item xs={12} style={{ padding: '0 8px', display: 'flex', justifyContent: 'center' }}>
+        <Grid
+          item
+          xs={12}
+          style={{
+            padding: '0 8px',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
           <PrimaryButton
             // fullWidth
             variant="contained"
@@ -509,15 +422,19 @@ function GradeEssay() {
           alignItems="center"
           style={{ width: '100%', margin: '10px 0px 10px 0px' }}
         >
-          <Grid item xs={12} style={{ padding: '0 8px' }}>
-            <PrimaryButton
-              fullWidth
-              variant="contained"
-              onClick={() => postEssays({ target: { files: uploadedFiles } })}
-              style={{ height: '100%' }}
-            >
-              Submit and Get Feedback
-            </PrimaryButton>
+          <Grid item xs={12} style={{ padding: '0 8px', display: 'flex', justifyContent: 'center' }}>
+            {loading ? (
+              <CircularProgress size={50} />
+            ) : (
+              <PrimaryButton
+                fullWidth
+                variant="contained"
+                onClick={() => postEssays()}
+                style={{ height: '100%' }}
+              >
+                Submit and Get Feedback
+              </PrimaryButton>
+            )}
           </Grid>
         </Grid>
       </Box>
