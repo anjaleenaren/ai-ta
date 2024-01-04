@@ -120,7 +120,7 @@ function GradeEssay() {
     // First make sure that all rows have files
     if (!rows || rows.length < 1) return;
     for (let i = 0; i < rows.length; i++) {
-      if (!rows[i] || (!rows[i].file && !uploadedFiles.includes(rows[i].file!))) {
+      if (!rows[i] || (!rows[i].file && !rows[i].feedback)) {
         alert('Oops! You forgot to upload a file for row' + (i + 1));
         return;
       }
@@ -131,8 +131,11 @@ function GradeEssay() {
     formData.append('numFiles', rows.length.toString());
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i]!;
-      if (r.file && !uploadedFiles.includes(r.file!)) {
+      if (r.file && !rows[i].feedback) {
         console.log(r.file);
+        console.log(i);
+        console.log(r.name);
+        console.log(r.feedback);
         setUploadedFiles((prev) => [...prev, r.file!]);
 
         formData.append('files', r.file!);

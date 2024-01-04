@@ -271,8 +271,6 @@ const uploadEssayNew = async (
   try {
     // const id = req.params.id;
     if (req.files) {
-      console.log('Received files:', req.files);
-
       const numFiles = req.files.length as number;
 
       if (!assistant || !assistant.id) {
@@ -294,10 +292,9 @@ const uploadEssayNew = async (
         const grade = req.body.grade[i];
         const criteria = req.body.criteria[i];
         const name = req.body.name[i];
-        console.log('grade = ', grade);
-        console.log('criteria = ', criteria);
-        console.log('name = ', name);
-        const responseObject: EssayResponse = {index: i, obj: {name: name, classGrade: grade, criteria: criteria, file: file, fileContent: '', feedback: ''}};
+        const index = req.body.index[i];
+        console.log("Proccessing file for student ", name, " with index ", index, " and grade ", grade, " and criteria ", criteria);
+        const responseObject: EssayResponse = {index: index, obj: {name: name, classGrade: grade, criteria: criteria, file: file, fileContent: '', feedback: ''}};
 
         let extractedText;
         switch (file.mimetype) {
@@ -317,9 +314,6 @@ const uploadEssayNew = async (
         // trim extracted text & remove leading and trailing white space
         extractedText = extractedText.trim();
 
-        // console.log('extracted text = ', extractedText);
-
-        console.log(assistant.id);
         var prompt = grade
           ? `You are a TA for a grade ${grade} english class. Write your feedback with a tone and style that is appropriate for a ${grade}th grader.`
           : `You are a TA for an english class.`;
@@ -330,7 +324,6 @@ const uploadEssayNew = async (
           prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
         }
         prompt += ` Provide feedback on the following essay. Include strengths and areas for improvement. When discussing areas for improvement, reference specific examples from the student's writing. Student's essay is below: \n${extractedText}`;
-        console.log('prompt = ', prompt);
 
         const thread = await openai.beta.threads.create({
           messages: [
@@ -355,12 +348,8 @@ const uploadEssayNew = async (
         responseObjects.push(responseObject);
       };
 
-      console.log('here');
-
-      console.log('\n \n \n runningRuns = ', runningRuns);
 
       while (runningRuns.length > 0) {
-        // console.log('In while loop');
         var runList = [];
         for (const r of runningRuns) {
           const run = await openai.beta.threads.runs.retrieve(
@@ -370,7 +359,6 @@ const uploadEssayNew = async (
           runList.push(run);
         }
         for (const r of runList) {
-          // console.log('run status = ', r.status, ' for thread ', r.thread_id);
           // Wait for run.status to be completed
           if (r.status != 'queued' && r.status != 'in_progress') {
             // Stream r to the frontend
@@ -392,11 +380,8 @@ const uploadEssayNew = async (
               responseObject = responseObjects.find(obj => obj.runId === r.id)!;
               const feedbackObj= threadMessages.data[0].content[0] as OpenAI.Beta.Threads.Messages.MessageContentText;
               responseObject.obj.feedback = feedbackObj.text.value;
-              console.log('feedback = ', responseObject.obj.feedback);
-              console.log('feedbackObj = ', feedbackObj);
-              console.log('responseObject = ', responseObject);
             }
-
+            console.log('-----------------------------------\nResponseObject = ', responseObject, '-----------------------------------\n');
             res.write(JSON.stringify(responseObject) + '\n');
             // Remove r from runList
             runningRuns = runList.filter((item) => item !== r);
