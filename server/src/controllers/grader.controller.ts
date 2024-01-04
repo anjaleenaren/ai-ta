@@ -283,16 +283,30 @@ const uploadEssayNew = async (
       // Process each file
       let responseObjects: EssayResponse[] = [];
       const files = req.files as Express.Multer.File[];
+      const grades = req.body.grade as string[];
+      const criterias = req.body.criteria as string[];
+      const names = req.body.name as string[];
+      const indices = req.body.index as number[];
       let runningRuns: any = [];
       // Associated extracted texts to runs
       let extractedTexts: any = {};
+      console.log("names", JSON.stringify(names));
 
       for (let i = 0; i < numFiles; i++) {
         const file = files[i];
-        const grade = req.body.grade[i];
-        const criteria = req.body.criteria[i];
-        const name = req.body.name[i];
-        const index = req.body.index[i];
+        let grade, criteria, name, index;
+        if (numFiles > 1) {
+          grade = grades[i];
+          criteria = criterias[i];
+          name = names[i];
+          index = indices[i];
+        } else {
+          grade = req.body.grade;
+          criteria
+           = req.body.criteria;
+          name = req.body.name;
+          index = req.body.index;
+        }
         console.log("Proccessing file for student ", name, " with index ", index, " and grade ", grade, " and criteria ", criteria);
         const responseObject: EssayResponse = {index: index, obj: {name: name, classGrade: grade, criteria: criteria, file: file, fileContent: '', feedback: ''}};
 
