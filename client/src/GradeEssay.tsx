@@ -217,6 +217,22 @@ function GradeEssay() {
       {/* <Typography variant="h2">Essay Grader</Typography> */}
 
       {/* Top Tool Bar */}
+      <Grid
+          container
+          justifyContent="center"
+          alignItems="center"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <StyledLink to="/" target="_blank" rel="noopener noreferrer">
+            <Typography
+              margin="15px 0px 0px 0px"
+              fontSize="25px"
+              fontWeight="bold"
+            >
+              AI Teaching Assistant
+            </Typography>
+          </StyledLink>
+        </Grid>
       <Box
         sx={{
           position: 'sticky',
@@ -258,22 +274,6 @@ function GradeEssay() {
           accept=".docx,.txt,.pdf"
           multiple
         />
-        <Grid
-          container
-          justifyContent="center"
-          alignItems="center"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <StyledLink to="/" target="_blank" rel="noopener noreferrer">
-            <Typography
-              margin="0px 0px 15px 0px"
-              fontSize="25px"
-              fontWeight="bold"
-            >
-              AI Teaching Assistant
-            </Typography>
-          </StyledLink>
-        </Grid>
         <Grid
           container
           justifyContent="space-between"
