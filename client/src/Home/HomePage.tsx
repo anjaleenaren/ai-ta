@@ -11,6 +11,8 @@ import {
 import { logout as logoutApi, selfUpgrade } from './api';
 import ScreenGrid from '../components/ScreenGrid';
 import PrimaryButton from '../components/buttons/PrimaryButton';
+import COLORS from '../assets/colors';
+import { useCallback } from 'react';
 
 interface PromoteButtonProps {
   admin: boolean | null;
@@ -69,17 +71,46 @@ function HomePage() {
     }
   };
 
+  const handleShareClick = useCallback(() => {
+    const nl = '%0D%0A';
+    const url = `ai-ta.xyz`;
+    window.location.href = `mailto:?subject=Cool Teaching Tool&body=Hi,${nl+nl}I found this website that helps with grading and thought you might find it useful: ${url}.${nl+nl}It's like a personal AI teaching assistant - I've been using it to grade my students' essays and it's been a huge help!${nl+nl}--${nl}`;
+  }, []);
+
   // const message = `Meet Your AI TA, ${user.firstName} ${user.lastName}!`;
   const message = `Hi, I'm your AI Teaching Assistant`;
   return (
     <ScreenGrid>
-      <Typography variant="h2">{message}</Typography>
+      <Grid item>
+        <Typography variant="h2" align="center">
+          {message}
+        </Typography>
+      </Grid>
       <Grid item container justifyContent="center">
         <PrimaryButton
           variant="contained"
           onClick={() => navigator('/essays', { replace: true })}
         >
           Grade Essays
+        </PrimaryButton>
+      </Grid>
+
+      <Grid
+        item
+        container
+        justifyContent="center"
+        style={{ marginTop: '20px' }}
+      >
+        <PrimaryButton
+          variant="contained"
+          onClick={handleShareClick}
+          style={{
+            height: '100%',
+            color: COLORS.primaryBlue,
+            backgroundColor: COLORS.white,
+          }}
+        >
+          Share Me With a Friend :)
         </PrimaryButton>
       </Grid>
 
@@ -91,9 +122,9 @@ function HomePage() {
         />
       </Grid> */}
 
-      <Grid item container justifyContent="center">
+      {/* <Grid item container justifyContent="center">
         <Button onClick={handleLogout}>Logout</Button>
-      </Grid>
+      </Grid> */}
     </ScreenGrid>
   );
 }
