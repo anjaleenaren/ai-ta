@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
-import { NavigateFunction, useNavigate } from 'react-router-dom';
+import { Link, NavigateFunction, useNavigate } from 'react-router-dom';
 import {
   Typography,
   Grid,
@@ -48,6 +48,15 @@ const MyTextField = styled(TextField)({
     style: { color: COLORS.gray }, // Label text color
   },
 });
+
+const StyledLink = styled(Link)`
+  text-decoration: none;
+  color: ${COLORS.primaryBlue};
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 const BACKENDURL = process.env.PUBLIC_URL
   ? 'https://ai-ta-backend.onrender.com'
@@ -249,6 +258,22 @@ function GradeEssay() {
           accept=".docx,.txt,.pdf"
           multiple
         />
+        <Grid
+          container
+          justifyContent="center"
+          alignItems="center"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <StyledLink to="/" target="_blank" rel="noopener noreferrer">
+            <Typography
+              margin="0px 0px 15px 0px"
+              fontSize="25px"
+              fontWeight="bold"
+            >
+              AI Teaching Assistant
+            </Typography>
+          </StyledLink>
+        </Grid>
         <Grid
           container
           justifyContent="space-between"
@@ -513,7 +538,7 @@ function GradeEssay() {
         >
           <PrimaryButton
             // fullWidth
-            variant="outlined"
+            variant="contained"
             onClick={() =>
               setRows((prev) => [
                 ...prev,
