@@ -107,6 +107,13 @@ function GradeEssay() {
     return () => window.removeEventListener('resize', calculateRows);
   }, []);
 
+  useEffect(() => {
+    if (responses.length == 1) {
+      console.log('Got first response', responses);
+      handlePageNum(0);
+    }
+  }, [responses]);
+
   const handleFileChange = async (event: any) => {
     let files: File[] = [];
     if (event.target.files && event.target.files.length > 0) {
@@ -150,13 +157,10 @@ function GradeEssay() {
           await processStream(response.body, (data: EssayResponse) => {
             if (loading) setLoading(false);
             console.log(data);
-            setExtractedText(data.extractedText);
-            setFeedback(data.responseMessage[0]?.text?.value);
             setResponses((prev) => [...prev, data]);
           });
         }
         console.log(responses);
-        setPageNum(0);
       } catch (error) {
         console.error('Error uploading file:', error);
       }
@@ -259,6 +263,7 @@ function GradeEssay() {
       )}
 
       {/* File Viewer */}
+      {/* {(extractedText || feedback) && } */}
       {extractedText && (
         <Grid item container justifyContent="center" style={{ marginTop: 20 }}>
           <TextField
