@@ -89,33 +89,6 @@ function GradeEssay() {
   // const [selectedFile, setSelectedFile] = useState<any>(null);
   const [extractedText, setExtractedText] = useState(``);
 
-  const [fileContentRows, setFileContentRows] = useState(10);
-  const [feedbackRows, setFeedbackRows] = useState(10);
-
-  const calculateRows = () => {
-    const windowHeight = window.innerHeight;
-    // Adjust these values based on your layout and preferences
-    const rowsForFileContent = Math.max(
-      3,
-      Math.min(20, Math.floor(windowHeight / 75)),
-    );
-    const rowsForFeedback = Math.max(
-      5,
-      Math.min(25, Math.floor(windowHeight / 60)),
-    );
-
-    console.log(rowsForFileContent, rowsForFeedback);
-
-    setFileContentRows(rowsForFileContent);
-    setFeedbackRows(rowsForFeedback);
-  };
-
-  useEffect(() => {
-    calculateRows();
-    window.addEventListener('resize', calculateRows);
-    return () => window.removeEventListener('resize', calculateRows);
-  }, []);
-
   const postEssays = async () => {
     // First make sure that all rows have files
     if (!rows || rows.length < 1) return;
@@ -132,18 +105,15 @@ function GradeEssay() {
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i]!;
       if (r.file && !rows[i].feedback) {
-        console.log(r.file);
-        console.log(i);
-        console.log(r.name);
-        console.log(r.feedback);
         setUploadedFiles((prev) => [...prev, r.file!]);
 
         formData.append('files', r.file!);
         formData.append('grade', r.classGrade);
-        formData.append('name', r.name);
         formData.append('criteria', r.criteria);
         formData.append('feedback', r.feedback);
         formData.append('index', i.toString());
+        formData.append('name', r.name);
+        console.log(JSON.stringify(formData.getAll('name')));
       }
     }
     setLoading(true);
@@ -158,7 +128,7 @@ function GradeEssay() {
           if (loading) setLoading(false);
           console.log(data);
           const i = data.index;
-          setRows(currentRows => {
+          setRows((currentRows) => {
             const newRows = [...currentRows];
             newRows[i] = data.obj;
             return newRows;
@@ -206,7 +176,7 @@ function GradeEssay() {
           onChange={(event) => {
             // Create a new row object for each file
             if (event.target.files && event.target.files.length > 0) {
-              setRows(currentRows => {
+              setRows((currentRows) => {
                 const newRows = [...currentRows];
                 for (let i = 0; i < event.target.files!.length; i++) {
                   const newFile = event.target.files![i];
@@ -221,8 +191,6 @@ function GradeEssay() {
                 }
                 return newRows;
               });
-              
-              
             }
           }}
           accept=".docx,.txt,.pdf"
@@ -288,7 +256,7 @@ function GradeEssay() {
             onChange={(event) => {
               // Update file for row object that was selected
               if (event.target.files && event.target.files.length > 0) {
-                setRows(currentRows => {
+                setRows((currentRows) => {
                   const newRows = [...currentRows];
                   newRows[index].file = event.target.files![0];
                   newRows[index].fileContent = event.target.files![0].name;
@@ -306,7 +274,7 @@ function GradeEssay() {
               variant="outlined"
               value={rows[index].name}
               onChange={(e) => {
-                setRows(currentRows => {
+                setRows((currentRows) => {
                   const newRows = [...currentRows];
                   newRows[index].name = e.target.value;
                   return newRows;
@@ -315,30 +283,30 @@ function GradeEssay() {
             />
           </Grid>
           <Grid item xs={3} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Submitted File"
-              variant="outlined"
-              value={rows[index].fileContent}
-              InputProps={{
-                readOnly: true,
-              }}
-            />
+            {rows[index].file && (
+              <TextField
+                fullWidth
+                label="Submitted File"
+                variant="outlined"
+                value={rows[index].fileContent}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            )}
           </Grid>
           <Grid item xs={4} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Feedback"
-              variant="outlined"
-              value={rows[index].feedback}
-              onChange={(e) => {
-                setRows(currentRows => {
-                  const newRows = [...currentRows];
-                  newRows[index].feedback = e.target.value;
-                  return newRows;
-                });
-              }}
-            />
+            {rows[index].feedback && rows[index].feedback.length > 0 && (
+              <TextField
+                fullWidth
+                label="Feedback"
+                variant="outlined"
+                value={rows[index].feedback}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            )}
           </Grid>
           <Grid item xs={2} style={{ padding: '0 8px' }}>
             <PrimaryButton
@@ -360,7 +328,7 @@ function GradeEssay() {
           <Grid item style={{ padding: '0 0px' }}>
             <IconButton
               onClick={() => {
-                setRows(currentRows => {
+                setRows((currentRows) => {
                   const newRows = [...currentRows];
                   newRows.splice(index, 1);
                   return newRows;
@@ -439,7 +407,15 @@ function GradeEssay() {
           alignItems="center"
           style={{ width: '100%', margin: '10px 0px 10px 0px' }}
         >
-          <Grid item xs={12} style={{ padding: '0 8px', display: 'flex', justifyContent: 'center' }}>
+          <Grid
+            item
+            xs={12}
+            style={{
+              padding: '0 8px',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
             {loading ? (
               <CircularProgress size={50} />
             ) : (
