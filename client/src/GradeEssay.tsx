@@ -42,10 +42,10 @@ const MyTextField = styled(TextField)({
     padding: '4px !important', // override inline-style
   },
   InputLabelProps: {
-    style: { color: COLORS.gray, } // Label text color
+    style: { color: COLORS.gray }, // Label text color
   },
   InputProps: {
-    style: { color: COLORS.gray, } // Label text color
+    style: { color: COLORS.gray }, // Label text color
   },
 });
 
@@ -99,17 +99,13 @@ async function processStream(
 }
 
 function GradeEssay() {
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [pageNum, setPageNum] = useState(-1); // Display a different response on each page
   const [rows, setRows] = useState<EssayObject[]>([]); // Used to display data for each row
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
-  const [name, setName] = useState('');
   const [criteria, setCriteria] = useState('');
   const [isCriteriaFocused, setIsCriteriaFocused] = useState(false);
+  const [doneGenerating, setDoneGenerating] = useState(false);
   // const [selectedFile, setSelectedFile] = useState<any>(null);
-  const [extractedText, setExtractedText] = useState(``);
 
   const postEssays = async () => {
     // First make sure that all rows have files
@@ -127,8 +123,6 @@ function GradeEssay() {
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i]!;
       if (r.file && !rows[i].feedback) {
-        setUploadedFiles((prev) => [...prev, r.file!]);
-
         formData.append('files', r.file!);
         formData.append('grade', r.classGrade);
         formData.append('criteria', r.criteria);
@@ -162,10 +156,12 @@ function GradeEssay() {
     }
     setLoading(false);
   };
-
-  const handleFileChange = (event: any) => {
-    // Update file for row object that was selected
-  };
+  const postMakeFile = async () => {
+    // Todo fill this in
+  }
+  const downloadFile = async () => {
+    // Todo fill this in
+  }
 
   return (
     <Box
@@ -231,7 +227,6 @@ function GradeEssay() {
               variant="outlined"
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              
             />
           </Grid>
           <Grid item xs={12} sm={5} md={6} style={{ padding: '0 8px' }}>
@@ -450,6 +445,41 @@ function GradeEssay() {
               >
                 Submit and Get Feedback
               </PrimaryButton>
+            )}
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            style={{
+              padding: '0 8px',
+              display: 'flex',
+              justifyContent: 'center',
+              margin: '10px 0px 0px 0px',
+            }}
+          >
+            {(rows && rows.length > 0 && rows[0].feedback?.length > 0) && !doneGenerating && (
+              <Grid item xs={12}>
+                <PrimaryButton
+                  fullWidth
+                  variant="contained"
+                  onClick={() => postMakeFile()}
+                  style={{ height: '100%' }}
+                >
+                  Compile Feedback Into File
+                </PrimaryButton>
+              </Grid>
+            )}
+            {(rows && rows.length > 0 && rows[0].feedback?.length > 0) && doneGenerating && (
+              <Grid item xs={12}>
+                <PrimaryButton
+                  fullWidth
+                  variant="contained"
+                  onClick={() => downloadFile()}
+                  style={{ height: '100%' }}
+                >
+                  Download File
+                </PrimaryButton>
+              </Grid>
             )}
           </Grid>
         </Grid>
