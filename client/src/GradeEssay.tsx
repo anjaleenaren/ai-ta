@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { Typography, Grid, Box, Divider } from '@mui/material';
+import { Typography, Grid, Box, Divider, Icon, IconButton, colors } from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
   logout as logoutAction,
@@ -16,6 +16,8 @@ import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import COLORS from './assets/colors';
+import { DeleteOutlined} from '@material-ui/icons';
+import { Clear } from '@material-ui/icons';
 
 const BACKENDURL = process.env.PUBLIC_URL
   ? 'https://ai-ta-backend.onrender.com'
@@ -32,9 +34,9 @@ type EssayResponse = {
 
 type EssayObject = {
   name: string; // Student name
-  grade: number; // Grade
+  classGrade: string; // Grade
   criteria: string; // Criteria
-  file: File; // File
+  file: File | null; // File
   fileContent: string; // File content (will contain just the filename if we have not yet extracted the text)
   feedback: string; // Feedback
 };
@@ -125,7 +127,7 @@ function GradeEssay() {
     }
   }, [responses]);
 
-  const handleFileChange = async (event: any) => {
+  const postEssays = async (event: any) => {
     let files: File[] = [];
     if (event.target.files && event.target.files.length > 0) {
       // Iterate through files, and push the ones that haven't already been uploaded
@@ -170,8 +172,8 @@ function GradeEssay() {
     }
   };
 
-  const uploadFile = () => {
-    document.getElementById('file-upload')?.click();
+  const handleFileChange = (event: any) => {
+    // Update file for row object that was selected
   };
 
   return (
@@ -183,18 +185,9 @@ function GradeEssay() {
       overflow="fixed"
       height="100vh" // Set the height to full viewport height
     >
-      {/* Hidden file input */}
-      <input
-        type="file"
-        id="file-upload"
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-        accept=".docx,.txt,.pdf"
-        multiple
-      />
       {/* <Typography variant="h2">Essay Grader</Typography> */}
 
-      {/* Button to trigger file upload */}
+      {/* Top Tool Bar */}
       <Box
         sx={{
           position: 'sticky',
@@ -206,6 +199,32 @@ function GradeEssay() {
           padding: '20px 10px 10px 10px',
         }}
       >
+        {/* Hidden file input */}
+        <input
+          type="file"
+          id="file-upload"
+          style={{ display: 'none' }}
+          onChange={(event) => {
+            // Create a new row object for each file
+            if (event.target.files && event.target.files.length > 0) {
+              const newRows = [...rows];
+              for (let i = 0; i < event.target.files.length; i++) {
+                const newFile = event.target.files[i];
+                newRows.push({
+                  name: '',
+                  classGrade: grade,
+                  criteria: criteria,
+                  file: newFile,
+                  fileContent: newFile.name,
+                  feedback: '',
+                });
+              }
+              setRows(newRows);
+            }
+          }}
+          accept=".docx,.txt,.pdf"
+          multiple
+        />
         <Grid
           container
           justifyContent="space-between"
@@ -238,7 +257,7 @@ function GradeEssay() {
             <PrimaryButton
               fullWidth
               variant="contained"
-              onClick={uploadFile}
+              onClick={() => document.getElementById('file-upload')?.click()}
               style={{ height: '100%' }}
             >
               Upload Essays
@@ -259,13 +278,33 @@ function GradeEssay() {
             padding: '0px 20px 0px 20px',
           }}
         >
-          <Grid item xs={3} style={{ padding: '0 8px' }}>
+          <input
+            type="file"
+            id={`file-upload-${index}`}
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              // Update file for row object that was selected
+              if (event.target.files && event.target.files.length > 0) {
+                const newRows = [...rows];
+                newRows[index].file = event.target.files[0];
+                newRows[index].fileContent = event.target.files[0].name;
+                setRows(newRows);
+              }
+            }}
+            accept=".docx,.txt,.pdf"
+            multiple
+          />
+          <Grid item xs={2} style={{ padding: '0 8px' }}>
             <TextField
               fullWidth
               label="Student Name"
               variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={rows[index].name}
+              onChange={(e) => {
+                const newRows = [...rows];
+                newRows[index].name = e.target.value;
+                setRows(newRows);
+              }}
             />
           </Grid>
           <Grid item xs={3} style={{ padding: '0 8px' }}>
@@ -273,8 +312,7 @@ function GradeEssay() {
               fullWidth
               label="Submitted File"
               variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={rows[index].fileContent}
               InputProps={{
                 readOnly: true,
               }}
@@ -285,10 +323,11 @@ function GradeEssay() {
               fullWidth
               label="Feedback"
               variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              InputProps={{
-                readOnly: true,
+              value={rows[index].feedback}
+              onChange={(e) => {
+                const newRows = [...rows];
+                newRows[index].feedback = e.target.value;
+                setRows(newRows);
               }}
             />
           </Grid>
@@ -296,7 +335,9 @@ function GradeEssay() {
             <PrimaryButton
               fullWidth
               variant="contained"
-              onClick={uploadFile}
+              onClick={() => {
+                document.getElementById(`file-upload-${index}`)?.click();
+              }}
               style={{
                 height: '100%',
                 color: COLORS.white,
@@ -305,6 +346,20 @@ function GradeEssay() {
             >
               Change File
             </PrimaryButton>
+          </Grid>
+          {/* X button to delete this row entry */}
+          <Grid item style={{ padding: '0 0px' }}>
+          <IconButton
+        onClick={() => {
+            const newRows = [...rows];
+            newRows.splice(index, 1);
+            setRows(newRows);
+        }}
+    >
+        {/* <CloseIcon /> */}
+        {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
+        <Clear style={{ color: COLORS.primaryDark }}/>
+    </IconButton>
           </Grid>
         </Grid>
       ))}
@@ -401,15 +456,27 @@ function GradeEssay() {
       )}
       <Grid
         container
-        justifyContent="space-between"
+        justifyContent="center"
         alignItems="center"
         style={{ width: '100%', padding: '10px 10px 10px 10px' }}
       >
-        <Grid item xs={12} style={{ padding: '0 8px' }}>
+        <Grid item xs={12} style={{ padding: '0 8px', display: 'flex', justifyContent: 'center' }}>
           <PrimaryButton
-            fullWidth
+            // fullWidth
             variant="contained"
-            onClick={uploadFile}
+            onClick={() =>
+              setRows((prev) => [
+                ...prev,
+                {
+                  name: '',
+                  classGrade: grade,
+                  criteria: criteria,
+                  file: null,
+                  fileContent: '',
+                  feedback: '',
+                },
+              ])
+            }
             style={{
               height: '100%',
               color: COLORS.white,
@@ -446,7 +513,7 @@ function GradeEssay() {
             <PrimaryButton
               fullWidth
               variant="contained"
-              onClick={uploadFile}
+              onClick={() => postEssays({ target: { files: uploadedFiles } })}
               style={{ height: '100%' }}
             >
               Submit and Get Feedback
