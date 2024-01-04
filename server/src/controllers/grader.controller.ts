@@ -429,7 +429,7 @@ const makeFileFromFeedback = async (
     }
 
     const feedbackText = essayObjects.map(obj => {
-      return `Student: ${obj.name}\nGrade: ${obj.classGrade}\nCriteria: ${obj.criteria}\nFeedback: ${obj.feedback}\n\n`;
+      return `Student: ${obj.name}\nClass Grade: ${obj.classGrade}\nCriteria: ${obj.criteria}\nFeedback: ${obj.feedback}\n\n`;
     }).join('\n');
 
     res.setHeader('Content-Disposition', 'attachment; filename=feedback.txt');

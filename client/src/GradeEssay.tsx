@@ -121,10 +121,13 @@ function GradeEssay() {
 
   const postEssays = async () => {
     // First make sure that all rows have files
-    if (!rows || rows.length < 1) return;
+    if (!rows || rows.length < 1) {
+      alert('Please upload atleast one essay so I can write feedback for it.');
+      return;
+    }
     for (let i = 0; i < rows.length; i++) {
       if (!rows[i] || (!rows[i].file && !rows[i].feedback)) {
-        alert('Oops! You forgot to upload a file for row' + (i + 1));
+        alert('Oops! You forgot to upload a file for row ' + (i + 1));
         return;
       }
     }
