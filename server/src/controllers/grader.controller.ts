@@ -109,6 +109,8 @@ const makeAssistantWithFile = async (
             // return res.status(400).send('Unsupported file type');
             break;
         }
+        // trim extracted text & remove leading and trailing white space
+        extractedText = extractedText.trim();
 
         // console.log('extracted text = ', extractedText);
 
