@@ -416,5 +416,29 @@ const uploadEssayNew = async (
   }
 };
 
-export { makeAssistantWithFile, getFeedback, submitEssayGrade, uploadEssayNew };
+const makeFileFromFeedback = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) => {
+  // Take array of EssayObjects and make a file
+  try {
+    const essayObjects = JSON.parse(decodeURIComponent(req.query.data as string));
+    if (!Array.isArray(essayObjects)) {
+      return res.status(400).send('Invalid data format');
+    }
+
+    const feedbackText = essayObjects.map(obj => {
+      return `Student: ${obj.name}\nGrade: ${obj.classGrade}\nCriteria: ${obj.criteria}\nFeedback: ${obj.feedback}\n\n`;
+    }).join('\n');
+
+    res.setHeader('Content-Disposition', 'attachment; filename=feedback.txt');
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(feedbackText);
+  } catch (error) {
+    res.status(500).send('Error processing request');
+  }
+}
+
+export { makeAssistantWithFile, getFeedback, submitEssayGrade, uploadEssayNew, makeFileFromFeedback };
 
