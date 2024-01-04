@@ -120,7 +120,7 @@ function GradeEssay() {
     // First make sure that all rows have files
     if (!rows || rows.length < 1) return;
     for (let i = 0; i < rows.length; i++) {
-      if (!rows[i] || !rows[i].file) {
+      if (!rows[i] || (!rows[i].file && !uploadedFiles.includes(rows[i].file!))) {
         alert('Oops! You forgot to upload a file for row' + (i + 1));
         return;
       }
@@ -155,9 +155,11 @@ function GradeEssay() {
           if (loading) setLoading(false);
           console.log(data);
           const i = data.index;
-          const newRows = [...rows];
-          newRows[i] = data.obj;
-          setRows(newRows);
+          setRows(currentRows => {
+            const newRows = [...currentRows];
+            newRows[i] = data.obj;
+            return newRows;
+          });
         });
       }
     } catch (error) {
@@ -201,19 +203,23 @@ function GradeEssay() {
           onChange={(event) => {
             // Create a new row object for each file
             if (event.target.files && event.target.files.length > 0) {
-              const newRows = [...rows];
-              for (let i = 0; i < event.target.files.length; i++) {
-                const newFile = event.target.files[i];
-                newRows.push({
-                  name: '',
-                  classGrade: grade,
-                  criteria: criteria,
-                  file: newFile,
-                  fileContent: newFile.name,
-                  feedback: '',
-                });
-              }
-              setRows(newRows);
+              setRows(currentRows => {
+                const newRows = [...currentRows];
+                for (let i = 0; i < event.target.files!.length; i++) {
+                  const newFile = event.target.files![i];
+                  newRows.push({
+                    name: '',
+                    classGrade: grade,
+                    criteria: criteria,
+                    file: newFile,
+                    fileContent: newFile.name,
+                    feedback: '',
+                  });
+                }
+                return newRows;
+              });
+              
+              
             }
           }}
           accept=".docx,.txt,.pdf"
@@ -279,10 +285,12 @@ function GradeEssay() {
             onChange={(event) => {
               // Update file for row object that was selected
               if (event.target.files && event.target.files.length > 0) {
-                const newRows = [...rows];
-                newRows[index].file = event.target.files[0];
-                newRows[index].fileContent = event.target.files[0].name;
-                setRows(newRows);
+                setRows(currentRows => {
+                  const newRows = [...currentRows];
+                  newRows[index].file = event.target.files![0];
+                  newRows[index].fileContent = event.target.files![0].name;
+                  return newRows;
+                });
               }
             }}
             accept=".docx,.txt,.pdf"
@@ -295,9 +303,11 @@ function GradeEssay() {
               variant="outlined"
               value={rows[index].name}
               onChange={(e) => {
-                const newRows = [...rows];
-                newRows[index].name = e.target.value;
-                setRows(newRows);
+                setRows(currentRows => {
+                  const newRows = [...currentRows];
+                  newRows[index].name = e.target.value;
+                  return newRows;
+                });
               }}
             />
           </Grid>
@@ -319,9 +329,11 @@ function GradeEssay() {
               variant="outlined"
               value={rows[index].feedback}
               onChange={(e) => {
-                const newRows = [...rows];
-                newRows[index].feedback = e.target.value;
-                setRows(newRows);
+                setRows(currentRows => {
+                  const newRows = [...currentRows];
+                  newRows[index].feedback = e.target.value;
+                  return newRows;
+                });
               }}
             />
           </Grid>
@@ -345,9 +357,11 @@ function GradeEssay() {
           <Grid item style={{ padding: '0 0px' }}>
             <IconButton
               onClick={() => {
-                const newRows = [...rows];
-                newRows.splice(index, 1);
-                setRows(newRows);
+                setRows(currentRows => {
+                  const newRows = [...currentRows];
+                  newRows.splice(index, 1);
+                  return newRows;
+                });
               }}
             >
               {/* <CloseIcon /> */}

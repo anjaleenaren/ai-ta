@@ -9,6 +9,7 @@ import {
   makeAssistantWithFile,
   getFeedback,
   submitEssayGrade,
+  uploadEssayNew
 } from '../controllers/grader.controller';
 import 'dotenv/config';
 import path from 'path';
@@ -45,6 +46,21 @@ router.post(
       });
   },
   makeAssistantWithFile,
+);
+
+router.post(
+  '/upload-essay-new',
+  (req, res, next) => {
+      upload.array('files', 10)(req, res, function (err) { // 'files' is the field name, 10 is the max number of files
+          if (err) {
+              // handle Multer error
+              console.log('Error uploading files');
+              return res.status(500).json({ error: err.message });
+          }
+          next();
+      });
+  },
+  uploadEssayNew,
 );
 /**
  * A GET route to get feedback and grade for an givengrading params
