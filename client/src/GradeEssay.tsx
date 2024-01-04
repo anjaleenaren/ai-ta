@@ -12,6 +12,7 @@ import {
   Icon,
   IconButton,
   colors,
+  styled,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
@@ -26,6 +27,27 @@ import CircularProgress from '@mui/material/CircularProgress';
 import COLORS from './assets/colors';
 import { DeleteOutlined } from '@material-ui/icons';
 import { Clear } from '@material-ui/icons';
+const MyTextField = styled(TextField)({
+  '& input + fieldset': {
+    borderColor: COLORS.lightGray,
+    borderWidth: 1,
+    color: COLORS.primaryBlue,
+  },
+  '& input:invalid + fieldset': {
+    borderColor: 'red',
+    borderWidth: 1,
+  },
+  '& input:valid:focus + fieldset': {
+    borderLeftWidth: 4,
+    padding: '4px !important', // override inline-style
+  },
+  InputLabelProps: {
+    style: { color: COLORS.gray, } // Label text color
+  },
+  InputProps: {
+    style: { color: COLORS.gray, } // Label text color
+  },
+});
 
 const BACKENDURL = process.env.PUBLIC_URL
   ? 'https://ai-ta-backend.onrender.com'
@@ -203,20 +225,17 @@ function GradeEssay() {
           style={{ width: '100%', margin: 0 }}
         >
           <Grid item xs={12} sm={3} md={3} style={{ padding: '0 8px' }}>
-            <TextField
+            <MyTextField
               fullWidth
               label="Class Grade"
               variant="outlined"
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              InputLabelProps={{
-                style: { color: COLORS.primaryBlue, borderColor:COLORS.primaryBlue } // Label text color
-              }}
               
             />
           </Grid>
           <Grid item xs={12} sm={5} md={6} style={{ padding: '0 8px' }}>
-            <TextField
+            <MyTextField
               fullWidth
               label="Specific Criteria"
               variant="outlined"
@@ -272,7 +291,7 @@ function GradeEssay() {
             multiple
           />
           <Grid item xs={2} style={{ padding: '0 8px' }}>
-            <TextField
+            <MyTextField
               fullWidth
               label="Student Name"
               variant="outlined"
@@ -288,7 +307,7 @@ function GradeEssay() {
           </Grid>
           <Grid item xs={3} style={{ padding: '0 8px' }}>
             {rows[index].file && (
-              <TextField
+              <MyTextField
                 fullWidth
                 label="Submitted File"
                 variant="outlined"
@@ -301,7 +320,7 @@ function GradeEssay() {
           </Grid>
           <Grid item xs={4} style={{ padding: '0 8px' }}>
             {rows[index].feedback && rows[index].feedback.length > 0 && (
-              <TextField
+              <MyTextField
                 fullWidth
                 label="Feedback"
                 variant="outlined"
