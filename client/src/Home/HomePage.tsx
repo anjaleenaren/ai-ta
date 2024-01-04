@@ -74,7 +74,7 @@ function HomePage() {
   const handleShareClick = useCallback(() => {
     const nl = '%0D%0A';
     const url = `ai-ta.xyz`;
-    window.location.href = `mailto:?subject=Cool Teaching Tool&body=Hi,${nl+nl}I found this website that helps with grading and thought you might find it useful: ${url}.${nl+nl}It's like a personal AI teaching assistant - I've been using it to grade my students' essays and it's been a huge help!${nl+nl}--${nl}`;
+    window.location.href = `mailto:?subject=Cool Grading Tool&body=Hi,${nl+nl}I found this website that helps with grading and thought you might find it useful: ${url}.${nl+nl}It's like a personal AI teaching assistant - I've been using it to grade my students' essays and it's been a huge help!${nl+nl}--${nl}`;
   }, []);
 
   // const message = `Meet Your AI TA, ${user.firstName} ${user.lastName}!`;
