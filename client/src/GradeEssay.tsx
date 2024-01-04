@@ -225,7 +225,7 @@ function GradeEssay() {
         >
           <StyledLink to="/" target="_blank" rel="noopener noreferrer">
             <Typography
-              margin="15px 0px 0px 0px"
+              margin="20px 0px 0px 0px"
               fontSize="25px"
               fontWeight="bold"
             >
