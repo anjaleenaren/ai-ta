@@ -142,6 +142,8 @@ const makeAssistantWithFile = async (
         });
 
         runningRuns.push(run);
+        // append file name to front of extractedText
+        extractedText = `${file.originalname}:\n${extractedText}`;
         extractedTexts[run.id] = extractedText;
       };
 

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { Typography, Grid, Box, Divider } from '@mui/material';
+import { Typography, Grid, Box } from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
   logout as logoutAction,
@@ -15,7 +15,6 @@ import ScreenGrid from './components/ScreenGrid';
 import PrimaryButton from './components/buttons/PrimaryButton';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
-import COLORS from './assets/colors';
 
 const BACKENDURL = process.env.PUBLIC_URL
   ? 'https://ai-ta-backend.onrender.com'
@@ -28,15 +27,6 @@ type EssayResponse = {
   extractedText: string;
   runStatus: string;
   responseMessage: any;
-};
-
-type EssayObject = {
-  name: string; // Student name
-  grade: number; // Grade
-  criteria: string; // Criteria
-  file: File; // File
-  fileContent: string; // File content (will contain just the filename if we have not yet extracted the text)
-  feedback: string; // Feedback
 };
 
 async function processStream(
@@ -72,7 +62,6 @@ function GradeEssay() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [pageNum, setPageNum] = useState(-1); // Display a different response on each page
   const [responses, setResponses] = useState<EssayResponse[]>([]);
-  const [rows, setRows] = useState<EssayObject[]>([]); // Used to display data for each row
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = React.useState(``);
   const [grade, setGrade] = useState('');
@@ -150,6 +139,15 @@ function GradeEssay() {
       formData.append('criteria', criteria); // Append criteria
       setLoading(true);
       try {
+        // const url = 'grader/upload-essay';
+        // const response = await axios.post(`${URLPREFIX}/${url}`, formData, {});
+
+        // // Handle response here
+        // console.log(response.data);
+        // console.log(response.data.responseMessage[0]?.text?.value);
+        // setFeedback(response.data.responseMessage[0]?.text?.value);
+        // setExtractedText(response.data.extractedText);
+
         const response = await fetch(`${URLPREFIX}/grader/upload-essay`, {
           method: 'POST',
           body: formData,
@@ -176,12 +174,11 @@ function GradeEssay() {
 
   return (
     <Box
-      // margin="10px 20px 10px 20px"
+      margin="30px"
       display="flex" // Ensure it's a flex container
       flexDirection="column" // Assuming you want a column layout
       alignItems="flex-start" // Align items to the start of cross axis
-      overflow="fixed"
-      height="100vh" // Set the height to full viewport height
+      overflow="scroll"
     >
       {/* Hidden file input */}
       <input
@@ -192,122 +189,56 @@ function GradeEssay() {
         accept=".docx,.txt,.pdf"
         multiple
       />
-      {/* <Typography variant="h2">Essay Grader</Typography> */}
 
       {/* Button to trigger file upload */}
-      <Box
-        sx={{
-          position: 'sticky',
-          top: 0, // Adjust this value as needed
-          zIndex: 1000, // Ensure it's above other elements
-          backgroundColor: COLORS.white, // Or any other background
-          // boxShadow: '0px 2px 4px rgba(0,0,0,0.1)', // Optional, for better visibility
-          width: '100%',
-          padding: '20px 10px 10px 10px',
-        }}
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        style={{ width: '100%', margin: 0 }}
       >
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <Grid item xs={12} sm={3} md={3} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Class Grade"
-              variant="outlined"
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={5} md={6} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Specific Criteria"
-              variant="outlined"
-              value={criteria}
-              onChange={(e) => setCriteria(e.target.value)}
-              onFocus={() => setIsCriteriaFocused(true)}
-              onBlur={() => setIsCriteriaFocused(false)}
-              multiline={isCriteriaFocused}
-              maxRows={5}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4} md={3} style={{ padding: '0 8px' }}>
-            <PrimaryButton
-              fullWidth
-              variant="contained"
-              onClick={uploadFile}
-              style={{ height: '100%' }}
-            >
-              Upload Essays
-            </PrimaryButton>
-          </Grid>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
+          <TextField
+            fullWidth
+            label="Class Grade"
+            variant="outlined"
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+          />
         </Grid>
-      </Box>
-
-      {/* Row Item (for a single essay), iterate through row objects and display*/}
-      {rows.map((row, index) => (
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          style={{
-            width: '100%',
-            margin: '10px 0px 10px 0px',
-            padding: '0px 20px 0px 20px',
-          }}
-        >
-          <Grid item xs={3} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Student Name"
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={3} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Submitted File"
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-          </Grid>
-          <Grid item xs={4} style={{ padding: '0 8px' }}>
-            <TextField
-              fullWidth
-              label="Feedback"
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-          </Grid>
-          <Grid item xs={2} style={{ padding: '0 8px' }}>
-            <PrimaryButton
-              fullWidth
-              variant="contained"
-              onClick={uploadFile}
-              style={{
-                height: '100%',
-                color: COLORS.white,
-                backgroundColor: COLORS.primaryDark,
-              }}
-            >
-              Change File
-            </PrimaryButton>
-          </Grid>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
+          <TextField
+            fullWidth
+            label="Student Name"
+            variant="outlined"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </Grid>
-      ))}
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
+          <TextField
+            fullWidth
+            label="Specific Criteria"
+            variant="outlined"
+            value={criteria}
+            onChange={(e) => setCriteria(e.target.value)}
+            onFocus={() => setIsCriteriaFocused(true)}
+            onBlur={() => setIsCriteriaFocused(false)}
+            multiline={isCriteriaFocused}
+            maxRows={5}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3} style={{ padding: '0 8px' }}>
+          <PrimaryButton
+            fullWidth
+            variant="contained"
+            onClick={uploadFile}
+            style={{ height: '100%' }}
+          >
+            Upload Essay(s)
+          </PrimaryButton>
+        </Grid>
+      </Grid>
 
       {/* Display the selected file */}
       {/* {selectedFile && (
@@ -399,61 +330,8 @@ function GradeEssay() {
           </Grid>
         </Grid>
       )}
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        style={{ width: '100%', padding: '10px 10px 10px 10px' }}
-      >
-        <Grid item xs={12} style={{ padding: '0 8px' }}>
-          <PrimaryButton
-            fullWidth
-            variant="contained"
-            onClick={uploadFile}
-            style={{
-              height: '100%',
-              color: COLORS.white,
-              backgroundColor: COLORS.primaryDark,
-            }}
-          >
-            Add a Single Essay
-          </PrimaryButton>
-        </Grid>
-      </Grid>
 
-      {/* Spacer */}
-      <Box flexGrow={1}></Box>
-
-      {/* Submit and Download Buttons */}
-      <Box
-        sx={{
-          position: 'sticky',
-          bottom: 0, // Adjust this value as needed
-          zIndex: 1000, // Ensure it's above other elements
-          backgroundColor: 'white', // Or any other background
-          boxShadow: '0px 2px 4px rgba(0,0,0,0.1)', // Optional, for better visibility
-          width: '100%',
-          padding: '0px 10px 0px 10px',
-        }}
-      >
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          style={{ width: '100%', margin: '10px 0px 10px 0px' }}
-        >
-          <Grid item xs={12} style={{ padding: '0 8px' }}>
-            <PrimaryButton
-              fullWidth
-              variant="contained"
-              onClick={uploadFile}
-              style={{ height: '100%' }}
-            >
-              Submit and Get Feedback
-            </PrimaryButton>
-          </Grid>
-        </Grid>
-      </Box>
+      {/* Displays the feedback and grade */}
     </Box>
   );
 }
