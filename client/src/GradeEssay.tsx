@@ -209,6 +209,10 @@ function GradeEssay() {
               variant="outlined"
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
+              InputLabelProps={{
+                style: { color: COLORS.primaryBlue, borderColor:COLORS.primaryBlue } // Label text color
+              }}
+              
             />
           </Grid>
           <Grid item xs={12} sm={5} md={6} style={{ padding: '0 8px' }}>
@@ -311,14 +315,14 @@ function GradeEssay() {
           <Grid item xs={2} style={{ padding: '0 8px' }}>
             <PrimaryButton
               fullWidth
-              variant="contained"
+              variant="outlined"
               onClick={() => {
                 document.getElementById(`file-upload-${index}`)?.click();
               }}
               style={{
                 height: '100%',
-                color: COLORS.white,
-                backgroundColor: COLORS.primaryDark,
+                color: COLORS.primaryBlue,
+                backgroundColor: COLORS.white,
               }}
             >
               Change File
@@ -337,7 +341,7 @@ function GradeEssay() {
             >
               {/* <CloseIcon /> */}
               {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
-              <Clear style={{ color: COLORS.primaryDark }} />
+              <Clear style={{ color: COLORS.primaryBlue }} />
             </IconButton>
           </Grid>
         </Grid>
@@ -361,7 +365,7 @@ function GradeEssay() {
         >
           <PrimaryButton
             // fullWidth
-            variant="contained"
+            variant="outlined"
             onClick={() =>
               setRows((prev) => [
                 ...prev,
@@ -377,8 +381,8 @@ function GradeEssay() {
             }
             style={{
               height: '100%',
-              color: COLORS.white,
-              backgroundColor: COLORS.primaryDark,
+              color: COLORS.primaryBlue,
+              backgroundColor: COLORS.white,
             }}
           >
             Add a Single Essay
