@@ -216,6 +216,7 @@ function GradeEssay() {
       alignItems="flex-start" // Align items to the start of cross axis
       overflow="fixed"
       height="100vh" // Set the height to full viewport height
+      bgcolor={COLORS.offWhite}
     >
       {/* <Typography variant="h2">Essay Grader</Typography> */}
 
@@ -245,6 +246,7 @@ function GradeEssay() {
           // boxShadow: '0px 2px 4px rgba(0,0,0,0.1)', // Optional, for better visibility
           width: '100%',
           padding: '20px 10px 10px 10px',
+          bgcolor: COLORS.offWhite,
         }}
       >
         {/* Hidden file input */}
@@ -616,6 +618,7 @@ function GradeEssay() {
           boxShadow: '0px 2px 4px rgba(0,0,0,0.1)', // Optional, for better visibility
           width: '100%',
           padding: '0px 10px 0px 10px',
+          bgcolor: COLORS.offWhite,
         }}
       >
         <Grid
