@@ -422,20 +422,26 @@ const makeFileFromFeedback = async (
   next: express.NextFunction,
 ) => {
   // Take array of EssayObjects and make a file
+  console.log("\n\n\n\nMake file from feedback!");
   try {
-    const essayObjects = JSON.parse(decodeURIComponent(req.query.data as string));
+    // const essayObjects = JSON.parse(decodeURIComponent(req.query.data as string));
+    const essayObjects = req.body; // Assuming body-parser middleware is used
     if (!Array.isArray(essayObjects)) {
       return res.status(400).send('Invalid data format');
     }
+    console.log('essayObjects = ', essayObjects);
 
     const feedbackText = essayObjects.map(obj => {
       return `Student: ${obj.name}\nClass Grade: ${obj.classGrade}\nCriteria: ${obj.criteria}\nFeedback: ${obj.feedback}\n\n`;
     }).join('\n');
 
+    console.log(feedbackText);
+
     res.setHeader('Content-Disposition', 'attachment; filename=feedback.txt');
     res.setHeader('Content-Type', 'text/plain');
     res.send(feedbackText);
   } catch (error) {
+    console.log('Error making file from feedback');
     res.status(500).send('Error processing request');
   }
 }

@@ -65,10 +65,10 @@ router.post(
 );
 
 /**
- * A GET route to get file given an array of Essay Objects
+ * A POST route to get file given an array of Essay Objects
  */
 // const upload = multer({ dest: 'uploads/' });
-router.get('/make-file', makeFileFromFeedback);
+router.post('/make-file', makeFileFromFeedback);
 
 /**
  * A GET route to get feedback and grade for an givengrading params
