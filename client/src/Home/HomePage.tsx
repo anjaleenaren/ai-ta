@@ -99,7 +99,7 @@ function HomePage() {
         item
         container
         justifyContent="center"
-        style={{ marginTop: '20px' }}
+        style={{ marginTop: '30px' }}
       >
         <PrimaryButton
           variant="contained"
