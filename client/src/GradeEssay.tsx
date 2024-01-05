@@ -13,6 +13,9 @@ import {
   IconButton,
   colors,
   styled,
+  Hidden,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from './util/redux/hooks';
 import {
@@ -108,7 +111,183 @@ async function processStream(
     dataBuffer = parts[parts.length - 1];
   }
 }
+interface RowProps {
+  index: number;
+  rows: EssayObject[];
+  setRows: React.Dispatch<React.SetStateAction<EssayObject[]>>;
+}
+const FileContentFeedbackRow: React.FC<RowProps> = ({ index, rows, setRows }) => {
+return (
+  <>
+  <Grid item xs={6} sm={3} style={{ padding: '0 8px' }}>
+            {rows[index].file && (
+              <MyTextField
+                focused={rows[index].displayFocused || rows[index].isFocused}
+                fullWidth
+                label="Submitted File"
+                variant="outlined"
+                value={rows[index].fileContent}
+                InputProps={{
+                  readOnly: true,
+                }}
+                onMouseEnter={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].displayFocused = true;
+                    return newRows;
+                  })
+                }
+                onMouseLeave={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].displayFocused = false;
+                    // newRows[index].isFocused = false;
+                    return newRows;
+                  })
+                }
+                onFocus={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].isFocused = true;
+                    newRows[index].displayFocused = true;
+                    return newRows;
+                  })
+                }
+                onBlur={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].isFocused = false;
+                    newRows[index].displayFocused = false;
+                    return newRows;
+                  })
+                }
+                multiline={rows[index].isFocused}
+                maxRows={20}
+              />
+            )}
+          </Grid>
+          <Grid item xs={6} sm={4} style={{ padding: '0 8px' }}>
+            {rows[index].feedback && rows[index].feedback.length > 0 && (
+              <MyTextField
+                focused={rows[index].displayFocused || rows[index].isFocused}
+                fullWidth
+                label="Feedback"
+                variant="outlined"
+                value={rows[index].feedback}
+                InputProps={{
+                  readOnly: true,
+                }}
+                onMouseEnter={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].displayFocused = true;
+                    return newRows;
+                  })
+                }
+                onMouseLeave={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].displayFocused = false;
+                    // newRows[index].isFocused = false;
+                    return newRows;
+                  })
+                }
+                onFocus={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].isFocused = true;
+                    newRows[index].displayFocused = true;
+                    return newRows;
+                  })
+                }
+                onBlur={() =>
+                  setRows((currentRows) => {
+                    const newRows = [...currentRows];
+                    newRows[index].isFocused = false;
+                    newRows[index].displayFocused = false;
+                    return newRows;
+                  })
+                }
+                multiline={rows[index].isFocused}
+                maxRows={20}
+              />
+            )}
+          </Grid>
+  </>
+) }
+const EditDeleteRow: React.FC<RowProps> = ({ index, rows, setRows }) => {
+  const theme = useTheme();
+  const isXsUp = useMediaQuery(theme.breakpoints.up('sm'));
 
+  return (
+    <>
+      <Grid item xs={4} sm={2} style={{ padding: '0 8px' }}>
+        <PrimaryButton
+          fullWidth
+          variant="contained"
+          onClick={() => {
+            document.getElementById(`file-upload-${index}`)?.click();
+          }}
+          style={{
+            height: '100%',
+            color: COLORS.primaryBlue,
+            backgroundColor: COLORS.white,
+          }}
+          onMouseEnter={() =>
+            setRows((currentRows) => {
+              const newRows = [...currentRows];
+              newRows[index].displayFocused = true;
+              return newRows;
+            })
+          }
+          onMouseLeave={() =>
+            setRows((currentRows) => {
+              const newRows = [...currentRows];
+              newRows[index].displayFocused = false;
+              // newRows[index].isFocused = false;
+              return newRows;
+            })
+          }
+        >
+          {isXsUp ? 'Edit File' : 'File'}
+        </PrimaryButton>
+      </Grid>
+      {/* X button to delete this row entry */}
+      <Grid item
+          justifyContent="flex-end"
+          alignItems="center">
+        <IconButton
+          onClick={() => {
+            setRows((currentRows) => {
+              const newRows = [...currentRows];
+              newRows.splice(index, 1);
+              return newRows;
+            });
+          }}
+          onMouseEnter={() =>
+            setRows((currentRows) => {
+              const newRows = [...currentRows];
+              newRows[index].displayFocused = true;
+              return newRows;
+            })
+          }
+          onMouseLeave={() =>
+            setRows((currentRows) => {
+              const newRows = [...currentRows];
+              newRows[index].displayFocused = false;
+              // newRows[index].isFocused = false;
+              return newRows;
+            })
+          }
+        >
+          {/* <CloseIcon /> */}
+          {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
+          <Clear style={{ color: COLORS.primaryBlue }} />
+        </IconButton>
+      </Grid>
+    </>
+  );
+};
 function GradeEssay() {
   const [rows, setRows] = useState<EssayObject[]>([]); // Used to display data for each row
   const [loading, setLoading] = useState(false);
@@ -176,17 +355,14 @@ function GradeEssay() {
     // 1. Take all the content from rows and pass it to the backend
     // 2. Backend will generate a file and return it
     setLoadingFile(true);
-    
+
     try {
       const url = `${URLPREFIX}/grader/make-file?data=${encodeURIComponent(
         JSON.stringify(rows),
       )}`;
-      const response = await fetch(
-        url,
-        {
-          method: 'GET',
-        },
-      );
+      const response = await fetch(url, {
+        method: 'GET',
+      });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -356,7 +532,7 @@ function GradeEssay() {
             accept=".docx,.txt,.pdf"
             multiple
           />
-          <Grid item xs={2} sm={2} style={{ padding: '0 8px' }}>
+          <Grid item xs={6} sm={2} style={{ padding: '0 8px' }}>
             <MyTextField
               focused={rows[index].displayFocused || rows[index].isFocused}
               fullWidth
@@ -404,162 +580,20 @@ function GradeEssay() {
               multiline={rows[index].isFocused}
             />
           </Grid>
-          <Grid item xs={2} sm={3} style={{ padding: '0 8px' }}>
-            {rows[index].file && (
-              <MyTextField
-                focused={rows[index].displayFocused || rows[index].isFocused}
-                fullWidth
-                label="Submitted File"
-                variant="outlined"
-                value={rows[index].fileContent}
-                InputProps={{
-                  readOnly: true,
-                }}
-                onMouseEnter={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].displayFocused = true;
-                    return newRows;
-                  })
-                }
-                onMouseLeave={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].displayFocused = false;
-                    // newRows[index].isFocused = false;
-                    return newRows;
-                  })
-                }
-                onFocus={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].isFocused = true;
-                    newRows[index].displayFocused = true;
-                    return newRows;
-                  })
-                }
-                onBlur={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].isFocused = false;
-                    newRows[index].displayFocused = false;
-                    return newRows;
-                  })
-                }
-                multiline={rows[index].isFocused}
-                maxRows={25}
-              />
-            )}
-          </Grid>
-          <Grid item xs={3} sm={4} style={{ padding: '0 8px' }}>
-            {rows[index].feedback && rows[index].feedback.length > 0 && (
-              <MyTextField
-                focused={rows[index].displayFocused || rows[index].isFocused}
-                fullWidth
-                label="Feedback"
-                variant="outlined"
-                value={rows[index].feedback}
-                InputProps={{
-                  readOnly: true,
-                }}
-                onMouseEnter={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].displayFocused = true;
-                    return newRows;
-                  })
-                }
-                onMouseLeave={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].displayFocused = false;
-                    // newRows[index].isFocused = false;
-                    return newRows;
-                  })
-                }
-                onFocus={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].isFocused = true;
-                    newRows[index].displayFocused = true;
-                    return newRows;
-                  })
-                }
-                onBlur={() =>
-                  setRows((currentRows) => {
-                    const newRows = [...currentRows];
-                    newRows[index].isFocused = false;
-                    newRows[index].displayFocused = false;
-                    return newRows;
-                  })
-                }
-                multiline={rows[index].isFocused}
-                maxRows={25}
-              />
-            )}
-          </Grid>
-          <Grid item xs={3} sm={2} style={{ padding: '0 8px' }}>
-            <PrimaryButton
-              fullWidth
-              variant="contained"
-              onClick={() => {
-                document.getElementById(`file-upload-${index}`)?.click();
-              }}
-              style={{
-                height: '100%',
-                color: COLORS.primaryBlue,
-                backgroundColor: COLORS.white,
-              }}
-              onMouseEnter={() =>
-                setRows((currentRows) => {
-                  const newRows = [...currentRows];
-                  newRows[index].displayFocused = true;
-                  return newRows;
-                })
-              }
-              onMouseLeave={() =>
-                setRows((currentRows) => {
-                  const newRows = [...currentRows];
-                  newRows[index].displayFocused = false;
-                  // newRows[index].isFocused = false;
-                  return newRows;
-                })
-              }
-            >
-              Edit File
-            </PrimaryButton>
-          </Grid>
-          {/* X button to delete this row entry */}
-          <Grid item style={{ padding: '0 0px' }}>
-            <IconButton
-              onClick={() => {
-                setRows((currentRows) => {
-                  const newRows = [...currentRows];
-                  newRows.splice(index, 1);
-                  return newRows;
-                });
-              }}
-              onMouseEnter={() =>
-                setRows((currentRows) => {
-                  const newRows = [...currentRows];
-                  newRows[index].displayFocused = true;
-                  return newRows;
-                })
-              }
-              onMouseLeave={() =>
-                setRows((currentRows) => {
-                  const newRows = [...currentRows];
-                  newRows[index].displayFocused = false;
-                  // newRows[index].isFocused = false;
-                  return newRows;
-                })
-              }
-            >
-              {/* <CloseIcon /> */}
-              {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
-              <Clear style={{ color: COLORS.primaryBlue }}/>
-            </IconButton>
-          </Grid>
+          <Hidden smDown>
+            <FileContentFeedbackRow index={index} rows={rows} setRows={setRows} />
+          </Hidden>
+          <Hidden smUp>
+            <EditDeleteRow index={index} rows={rows} setRows={setRows} />
+          </Hidden>
+          
+          {/* don't show below if xs */}
+          <Hidden smDown>
+            <EditDeleteRow index={index} rows={rows} setRows={setRows} />
+          </Hidden>
+          <Hidden smUp>
+            <FileContentFeedbackRow index={index} rows={rows} setRows={setRows} />
+          </Hidden>
         </Grid>
       ))}
 
