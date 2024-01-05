@@ -35,7 +35,7 @@ const createExpressApp = (sessionStore: MongoStore): express.Express => {
     }),
   );
   // Gives express the ability accept origins outside its own to accept requests from
-  app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
+  // app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
   const frontendUrl = process.env.FRONTEND || 'http://localhost:3000';
   app.use(
     cors({
