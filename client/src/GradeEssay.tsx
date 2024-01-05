@@ -176,11 +176,13 @@ function GradeEssay() {
     // 1. Take all the content from rows and pass it to the backend
     // 2. Backend will generate a file and return it
     setLoadingFile(true);
+    
     try {
+      const url = `${URLPREFIX}/grader/make-file?data=${encodeURIComponent(
+        JSON.stringify(rows),
+      )}`;
       const response = await fetch(
-        `${URLPREFIX}/grader/make-file?data=${encodeURIComponent(
-          JSON.stringify(rows),
-        )}`,
+        url,
         {
           method: 'GET',
         },
@@ -198,6 +200,7 @@ function GradeEssay() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+      // window.open(url, '_blank');
     } catch (error) {
       console.error('Error downloading the feedback:', error);
     }
@@ -577,7 +580,7 @@ function GradeEssay() {
           }}
         >
           <PrimaryButton
-            // fullWidth
+            fullWidth
             variant="contained"
             onClick={() =>
               setRows((prev) => [
@@ -598,6 +601,7 @@ function GradeEssay() {
               height: '100%',
               color: COLORS.primaryBlue,
               backgroundColor: COLORS.white,
+              margin: '0px 10px 0px 10px',
             }}
           >
             Add a Single Essay
