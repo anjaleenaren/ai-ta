@@ -221,21 +221,21 @@ function GradeEssay() {
 
       {/* Top Tool Bar */}
       <Grid
-          container
-          justifyContent="center"
-          alignItems="center"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <StyledLink to="/" target="_blank" rel="noopener noreferrer">
-            <Typography
-              margin="20px 0px 0px 0px"
-              fontSize="25px"
-              fontWeight="bold"
-            >
-              AI Teaching Assistant
-            </Typography>
-          </StyledLink>
-        </Grid>
+        container
+        justifyContent="center"
+        alignItems="center"
+        style={{ width: '100%', margin: 0 }}
+      >
+        <StyledLink to="/" target="_blank" rel="noopener noreferrer">
+          <Typography
+            margin="20px 0px 0px 0px"
+            fontSize="25px"
+            fontWeight="bold"
+          >
+            AI Teaching Assistant
+          </Typography>
+        </StyledLink>
+      </Grid>
       <Box
         sx={{
           position: 'sticky',
@@ -353,7 +353,7 @@ function GradeEssay() {
           />
           <Grid item xs={2} sm={2} style={{ padding: '0 8px' }}>
             <MyTextField
-              focused={rows[index].displayFocused}
+              focused={rows[index].displayFocused || rows[index].isFocused}
               fullWidth
               label="Student Name"
               variant="outlined"
@@ -376,6 +376,7 @@ function GradeEssay() {
                 setRows((currentRows) => {
                   const newRows = [...currentRows];
                   newRows[index].displayFocused = false;
+                  // newRows[index].isFocused = false;
                   return newRows;
                 })
               }
@@ -401,7 +402,7 @@ function GradeEssay() {
           <Grid item xs={2} sm={3} style={{ padding: '0 8px' }}>
             {rows[index].file && (
               <MyTextField
-                focused={rows[index].displayFocused}
+                focused={rows[index].displayFocused || rows[index].isFocused}
                 fullWidth
                 label="Submitted File"
                 variant="outlined"
@@ -420,6 +421,7 @@ function GradeEssay() {
                   setRows((currentRows) => {
                     const newRows = [...currentRows];
                     newRows[index].displayFocused = false;
+                    // newRows[index].isFocused = false;
                     return newRows;
                   })
                 }
@@ -440,13 +442,14 @@ function GradeEssay() {
                   })
                 }
                 multiline={rows[index].isFocused}
+                maxRows={25}
               />
             )}
           </Grid>
           <Grid item xs={3} sm={4} style={{ padding: '0 8px' }}>
             {rows[index].feedback && rows[index].feedback.length > 0 && (
               <MyTextField
-                focused={rows[index].displayFocused}
+                focused={rows[index].displayFocused || rows[index].isFocused}
                 fullWidth
                 label="Feedback"
                 variant="outlined"
@@ -465,6 +468,7 @@ function GradeEssay() {
                   setRows((currentRows) => {
                     const newRows = [...currentRows];
                     newRows[index].displayFocused = false;
+                    // newRows[index].isFocused = false;
                     return newRows;
                   })
                 }
@@ -485,6 +489,7 @@ function GradeEssay() {
                   })
                 }
                 multiline={rows[index].isFocused}
+                maxRows={25}
               />
             )}
           </Grid>
@@ -500,6 +505,21 @@ function GradeEssay() {
                 color: COLORS.primaryBlue,
                 backgroundColor: COLORS.white,
               }}
+              onMouseEnter={() =>
+                setRows((currentRows) => {
+                  const newRows = [...currentRows];
+                  newRows[index].displayFocused = true;
+                  return newRows;
+                })
+              }
+              onMouseLeave={() =>
+                setRows((currentRows) => {
+                  const newRows = [...currentRows];
+                  newRows[index].displayFocused = false;
+                  // newRows[index].isFocused = false;
+                  return newRows;
+                })
+              }
             >
               Edit File
             </PrimaryButton>
@@ -514,10 +534,25 @@ function GradeEssay() {
                   return newRows;
                 });
               }}
+              onMouseEnter={() =>
+                setRows((currentRows) => {
+                  const newRows = [...currentRows];
+                  newRows[index].displayFocused = true;
+                  return newRows;
+                })
+              }
+              onMouseLeave={() =>
+                setRows((currentRows) => {
+                  const newRows = [...currentRows];
+                  newRows[index].displayFocused = false;
+                  // newRows[index].isFocused = false;
+                  return newRows;
+                })
+              }
             >
               {/* <CloseIcon /> */}
               {/* <DeleteOutlined style={{ color: COLORS.primaryDark }}/> */}
-              <Clear style={{ color: COLORS.primaryBlue }} />
+              <Clear style={{ color: COLORS.primaryBlue }}/>
             </IconButton>
           </Grid>
         </Grid>
