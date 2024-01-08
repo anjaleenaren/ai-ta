@@ -17,7 +17,7 @@ import { hasOwn } from 'openai/core';
  * Get OpenAI's grade for an essay given a file, and grading params
  */
 var assistant: any = {
-  id: 'asst_6ujXj7V7lLO30g8c1bzcOQ6Z',
+  id: 'asst_YO8DUWfVbO68GbrfE4iJqwEN',
 };
 
 type EssayObject = {
@@ -332,7 +332,7 @@ const uploadEssayNew = async (
           ? `You are a TA for a grade ${grade} english class. Write your feedback with a tone and style that is appropriate for a ${grade}th grader.`
           : `You are a TA for an english class.`;
         if (name) {
-          prompt += ` Please address the student by their name, ${name}`;
+          prompt += ` The name of the student who wrote this essay is, ${name}`;
         }
         if (criteria) {
           prompt += ` Make sure to touch on the following criteria / special instructions: ${criteria}.`;
